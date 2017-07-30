@@ -10,7 +10,7 @@ cPrintDriver resource has the following properties:
 * Version: The version of the driver
 * Source: Where the source .inf file is located
 
-### xPrintDriver Examples
+### cPrintDriver Examples
 
 * [Add a printer driver](/Examples/Sample_cPrintDriver.ps1)
 
@@ -20,7 +20,7 @@ cPrintDriverSet resource has the following properties:
 * Version: The version of the driver
 * Source: Where the source .inf file is located
 
-### xPrintDriverSet Examples
+### cPrintDriverSet Examples
 
 * [Add a printer driver set](/Examples/Sample_cPrintDriverSet.ps1)
 
@@ -38,7 +38,7 @@ cPrinter resource has the following properties:
 * SNMPIndex: Sets the desired index used for SNMP communication if SNMP is enabled. Defaults to 1
 * PermissionsSDDL: The desired permissions of a printer
 
-### xPrinter Examples
+### cPrinter Examples
 
 * [Add a printer](/Examples/Sample_cPrinter.ps1)
 
