@@ -177,6 +177,36 @@ try {
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                 }
+                it 'Add-PrinterPort and Add-Printer both should be called 1 time' {
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    Mock -CommandName Get-Printer -MockWith { }
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It
+                }
+                it 'Add-PrinterPort and Add-Printer both should not called' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'newPrinter'
+                        } 
+                    }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'newPrinter'
+                        } 
+                    }
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                }
             }
             
         }
