@@ -141,31 +141,41 @@ try {
             }
         }
         Describe 'Set Method'{
-            context 'Set New' {
+            context 'Ensure Present' {
                 $cPrinterResource = [cPrinter]::new()
                 $cPrinterResource.Ensure = [Ensure]::Present
                 $cPrinterResource.Name = "newPrinter"
                 $cPrinterResource.PortName = "newPrinter"
                 
                 it 'Add-Printer should be called 1 time' {
-                    Mock -CommandName Add-PrinterPort -MockWith {
+                    Mock -CommandName Get-Printer -MockWith { }
+                    Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                        }
+                            Name = 'newPrinter'
+                        } 
                     }
-                    Mock -CommandName Add-Printer -MockWith {}
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
                     $cPrinterResource.Set()
-                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
                 }
                 it 'Add-PrinterPort should be called 1 time' {
-                    Mock -CommandName Add-PrinterPort -MockWith {}
-                    Mock -CommandName Add-Printer -MockWith {
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    Mock -CommandName Get-Printer -MockWith {
                         [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                        }
+                            Name = 'newPrinter'
+                        } 
                     }
+                    Mock -CommandName Add-PrinterPort -MockWith {}
+                    Mock -CommandName Add-Printer -MockWith { }
                     $cPrinterResource.Set()
-                    Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                 }
             }
             
