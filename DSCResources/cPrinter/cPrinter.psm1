@@ -17,8 +17,8 @@ class cPrinter {
 
     [DscProperty(Mandatory)]
     [System.String] $PortName
-
     
+
     [void] Set(){
         $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
         $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
@@ -45,7 +45,7 @@ class cPrinter {
         $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
         if($this.Ensure -eq [Ensure]::Present){
             if($null -eq $printer){
-                Write-Verbose -Message "Ensure does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
+                Write-Verbose -Message  "Ensure does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
                 return $false
             }
             if($null -eq $printerPort){
@@ -72,7 +72,7 @@ class cPrinter {
     [cPrinter] Get(){
         #Need to gather the printer information 
         $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
-        $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
+        #$printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
 
         if($printer){
             $this.Name = $printer.Name
