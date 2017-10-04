@@ -208,7 +208,51 @@ try {
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                 }
             }
-            
+            context 'Ensure Absent' {
+                $cPrinterResource = [cPrinter]::new()
+                $cPrinterResource.Ensure = [Ensure]::Absent
+                $cPrinterResource.Name = "removePrinter"
+                $cPrinterResource.PortName = "removePrinter"
+                
+                it 'Remove-Printer should be called 1 time' {
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'removePrinter'
+                        } 
+                    }
+                    Mock -CommandName Get-Printjob -MockWith { }
+                    Mock -CommandName Remove-Printer -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-Printjob -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-Printer -Times 1 -Exactly -Scope It
+                }
+                it 'Remove-Printer and Remove-PrinJob should be called 1 time' {
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'removePrinter'
+                        } 
+                    }
+                    Mock -CommandName Get-Printjob -MockWith {
+                        [System.Collections.Hashtable]@{
+                            ID = '1'
+                            PrinterName = 'removePrinter'
+                            DocumentName = 'Test'
+                        } 
+                    }
+                    Mock -CommandName Remove-Printer -MockWith { }
+                    Mock -CommandName Remove-PrintJob -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-Printjob -Times 2 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-PrintJob -Times 1 -Exactly -Scope It
+                }
+            }
         }
     }
 } finally {
