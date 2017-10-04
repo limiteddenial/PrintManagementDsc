@@ -37,7 +37,20 @@ class cPrinter {
                 Add-Printer @PrinterParamaters
             }
         } else {
-
+            if($null -ne $printer){
+                $PrinterParamaters = @{
+                    Name = $this.Name
+                }
+                if($null -ne (Get-PrintJob -PrinterName $this.Name)) {
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                }
+                Remove-Printer @PrinterParamaters
+            }
+            if($null -ne $printerPort){
+                $PrinterPortParamaters = @{
+                    Name = $this.PortName
+                }
+            }
         }
     }
     [bool] Test() {
