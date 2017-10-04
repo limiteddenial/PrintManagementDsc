@@ -1,3 +1,5 @@
 {
-    ExcludeRules=@('one-newline-before-braces')
+    ExcludeRules=@('IfStatementOpeningBraceNotOnSameLine',
+        'FunctionOpeningBraceNotOnSameLine'
+    )
 }
