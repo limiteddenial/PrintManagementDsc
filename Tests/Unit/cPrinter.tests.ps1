@@ -52,8 +52,8 @@ try {
                 $cPrinterResource.PortName = "testprinter"
 
                 it 'Test should return true when printer is absent' {
-                    Mock -CommandName Get-Printer -MockWith {} -ParameterFilter {$Name -eq "testprinter"}
-                    Mock -CommandName Get-PrinterPort -MockWith {} -ParameterFilter {$Name -eq "testprinter"}
+                    Mock -CommandName Get-Printer -MockWith {}
+                    Mock -CommandName Get-PrinterPort -MockWith {}
                     $cPrinterResource.test() | should be $true
                 }
                 it "Test should return false when printer is present" {
@@ -70,12 +70,12 @@ try {
                     $cPrinterResource.test() | should be $false
                 }
                 it "Test should return false when printer is absent and the printer port is present" {
-                    Mock -CommandName Get-Printer -MockWith { } -ParameterFilter {$Name -eq "testprinter"}
+                    Mock -CommandName Get-Printer -MockWith { }
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'testprinter'
                         }
-                    } -ParameterFilter {$Name -eq "testprinter"}
+                    }
                     $cPrinterResource.test() | should be $false
                 }
             }
@@ -96,7 +96,7 @@ try {
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
                         }
-                    } -ParameterFilter {$Name -eq "printerExists"}
+                    }
                     $cPrinterResource.test() | should be $true
                 }
                 it 'Test should return false when printer is present and port is absent' {
@@ -105,17 +105,17 @@ try {
                             Name = 'printerExists'
                             PortName = 'printerExists'
                         }
-                    } -ParameterFilter {$Name -eq "printerExists"}
-                    Mock -CommandName Get-PrinterPort -MockWith {} -ParameterFilter {$Name -eq "printerExists"}
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { }
                     $cPrinterResource.test() | should be $false
                 }
                 it 'Test should return false when printer is absent and the port is present' {
-                    Mock -CommandName Get-Printer -MockWith { } -ParameterFilter {$Name -eq "printerExists"}
+                    Mock -CommandName Get-Printer -MockWith { }
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
                         }
-                    } -ParameterFilter {$Name -eq "printerExists"}
+                    } 
                     $cPrinterResource.test() | should be $false
                 }
             }
@@ -132,11 +132,10 @@ try {
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
                         }
-                    } -ParameterFilter {$Name -eq "printerExists"}
+                    }
                     $object = $cPrinterResource.Get()
 
                     $object.GetType().Name | Should Be 'cPrinter'
-                    $object.Ensure | Should Be 'Present'
                 }
             }
         }
