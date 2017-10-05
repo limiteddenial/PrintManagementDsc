@@ -1,4 +1,3 @@
-
 # cPrinterManagement
 
 The **cPrinterManagement** module contains the following resources:
