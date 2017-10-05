@@ -20,13 +20,13 @@ Configuration cPrintDriverSet
         [ValidateSet("Present","Absent")]
         $Ensure = "Present",   
 
-		[parameter(Mandatory = $false)]
-		[System.String]
-		$Source,
+        [parameter(Mandatory = $false)]
+        [System.String]
+        $Source,
 
-		[parameter(Mandatory = $true)]
-		[System.String]
-		$Version
+        [parameter(Mandatory = $true)]
+        [System.String]
+        $Version
     )
 
     $newResourceSetConfigurationParams = @{
