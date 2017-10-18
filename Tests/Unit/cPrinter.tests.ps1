@@ -4,7 +4,7 @@ $Global:DscResourceName = 'cPrinter'
 #region HEADER
 
 # Unit Test Template Version: 1.2.0
-$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+<#$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
      (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
 {
@@ -30,7 +30,9 @@ function Invoke-TestCleanup {
 # Begin Testing
 try {
     Invoke-TestSetup
-
+#>
+$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement.psd1') -Force
     #region Pester Tests
     InModuleScope -ModuleName cPrinter {
         Describe 'Test Method'{          
@@ -61,12 +63,21 @@ try {
                         [System.Collections.Hashtable]@{
                             Name = 'testprinter'
                         }
-                    } -ParameterFilter {$Name -eq "testprinter"}
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    $cPrinterResource.test() | should be $false
+                }
+                it "Test should return false when printer and port is present" {
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'testprinter'
+                        }
+                    }
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'testprinter'
                         }
-                    } -ParameterFilter {$Name -eq "testprinter"}
+                    }
                     $cPrinterResource.test() | should be $false
                 }
                 it "Test should return false when printer is absent and the printer port is present" {
@@ -91,7 +102,7 @@ try {
                             Name = 'printerExists'
                             PortName = 'printerExists'
                         }
-                    } -ParameterFilter {$Name -eq "printerExists"}
+                    }
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
@@ -140,11 +151,15 @@ try {
             }
         }
         Describe 'Set Method'{
+            Function Remove-PrintJob { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject ) }
+            Function Remove-PrinterPort{[Cmdletbinding()] param($name)}
             context 'Ensure Present' {
                 $cPrinterResource = [cPrinter]::new()
                 $cPrinterResource.Ensure = [Ensure]::Present
                 $cPrinterResource.Name = "newPrinter"
                 $cPrinterResource.PortName = "newPrinter"
+                $cPrinterResource.Address = "test.local"
+                $cPrinterResource.DriverName = "Microsoft enhanced Point and Print compatibility driver"
                 
                 it 'Add-Printer should be called 1 time' {
                     Mock -CommandName Get-Printer -MockWith { }
@@ -208,6 +223,7 @@ try {
                 }
             }
             context 'Ensure Absent' {
+                
                 $cPrinterResource = [cPrinter]::new()
                 $cPrinterResource.Ensure = [Ensure]::Absent
                 $cPrinterResource.Name = "removePrinter"
@@ -251,11 +267,41 @@ try {
                     Assert-MockCalled -CommandName Remove-Printer -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Remove-PrintJob -Times 1 -Exactly -Scope It
                 }
+                it 'Remove-PrinterPort should be called 1 time' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'removePrinter'
+                        }
+                    }
+                    Mock -CommandName Get-Printer -MockWith { }
+                    Mock -CommandName Remove-PrinterPort -MockWith { }
+                    Mock -CommandName Restart-Service -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 0 -Exactly -Scope It
+                }
+                it 'Remove-PrinterPort should be called 2 times and the Spooler service restarted' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'removePrinter'
+                        }
+                    }
+                    Mock -CommandName Get-Printer -MockWith { }
+                    Mock -CommandName Remove-PrinterPort -MockWith { throw }
+                    Mock -CommandName Restart-Service -MockWith { }
+                     { $cPrinterResource.Set() } | Should Throw
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-PrinterPort -Times 2 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                }
             }
         }
-    }
+    } <#
 } finally {
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion
-}
+}#>
