@@ -17,6 +17,14 @@ class cPrinter {
 
     [DscProperty(Mandatory)]
     [System.String] $PortName
+
+    [DscProperty()]
+    [System.String] $Address
+
+    [DscProperty()]
+    [System.String] $DriverName
+
+   # hidden $messages = (Import-LocalizedData  -FileName cPrinterManagement.strings.psd1 -BaseDirectory $PSScriptRoot)
     
 
     [void] Set(){
@@ -27,12 +35,15 @@ class cPrinter {
                 Write-Verbose -Message "Creating new Printer Port"
                 $PrinterPortParamaters = @{
                     Name = $this.PortName
+                    PrinterHostAddress =  "local.test"
                 }
                 Add-PrinterPort @PrinterPortParamaters
             }
             if($null -eq $printer){
                 $PrinterParamaters = @{
                     Name = $this.Name
+                    PortName = $this.PortName
+                    DriverName = $this.DriverName
                 }
                 Add-Printer @PrinterParamaters
             }
@@ -47,8 +58,11 @@ class cPrinter {
                 Remove-Printer @PrinterParamaters
             }
             if($null -ne $printerPort){
-                $PrinterPortParamaters = @{
-                    Name = $this.PortName
+                try {
+                    Remove-PrinterPort -Name $this.PortName
+                } catch {
+                    Restart-Service -Name Spooler -Force
+                    Remove-PrinterPort -Name $this.PortName
                 }
             }
         }
