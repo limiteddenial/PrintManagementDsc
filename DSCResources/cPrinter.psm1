@@ -23,9 +23,12 @@ class cPrinter {
 
     [DscProperty()]
     [System.String] $DriverName
-
-    hidden $messages = $MyInvocation.MyCommand.Module.PrivateData['PSData']
     
+    hidden $Messages = ""
+
+    cPrinter(){
+        $this.Messages = (Import-LocalizedData  -FileName cPrinterManagement.strings.psd1 -BaseDirectory (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH)))
+    }
 
     [void] Set(){
         $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
@@ -70,30 +73,27 @@ class cPrinter {
     [bool] Test() {
         $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
         $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
-        Write-Warning "Testing"
-        Write-Warning $this.messages
         if($this.Ensure -eq [Ensure]::Present){
             if($null -eq $printer){
-              #  Write-Verbose -Message  ($messages.NotInDesiredState -f "Ensure","Absent",$this.Ensure)
-               # "Ensure does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Ensure","Absent",$this.Ensure)
                 return $false
             }
             if($null -eq $printerPort){
-                Write-Verbose -Message "PrinterPort does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PrinterPort","Absent",$this.Ensure)
                 return $false
             }
             if($this.PortName -ne $printer.PortName){
-                Write-Verbose -Message "Ensure does not match desired state. Current value: $($printer.PortName) - Desired Value: $($this.PortName)"
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             }
             return $true
         } else {
             if($null -ne $printer){
-                Write-Verbose -Message "Ensure does not match desired state. Current value: Present - Desired Value: $this.Ensure"
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Ensure","Present",$this.Ensure)
                 return $false
             }
             if($null -ne $printerPort){
-                Write-Verbose -Message "PrinterPort does not match desired state. Current value: Present - Desired Value: $($this.Ensure)"
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PrinterPort","Present",$this.Ensure)
                 return $false
             }
             return $true
