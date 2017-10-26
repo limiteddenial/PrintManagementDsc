@@ -24,7 +24,7 @@ class cPrinter {
     [DscProperty()]
     [System.String] $DriverName
 
-   # hidden $messages = (Import-LocalizedData  -FileName cPrinterManagement.strings.psd1 -BaseDirectory $PSScriptRoot)
+    hidden $messages = $MyInvocation.MyCommand.Module.PrivateData['PSData']
     
 
     [void] Set(){
@@ -70,9 +70,12 @@ class cPrinter {
     [bool] Test() {
         $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
         $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
+        Write-Warning "Testing"
+        Write-Warning $this.messages
         if($this.Ensure -eq [Ensure]::Present){
             if($null -eq $printer){
-                Write-Verbose -Message  "Ensure does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
+              #  Write-Verbose -Message  ($messages.NotInDesiredState -f "Ensure","Absent",$this.Ensure)
+               # "Ensure does not match desired state. Current value: Absent - Desired Value: $($this.Ensure)"
                 return $false
             }
             if($null -eq $printerPort){
