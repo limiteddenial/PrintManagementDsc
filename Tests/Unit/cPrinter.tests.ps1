@@ -144,9 +144,130 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                             Name = 'printerExists'
                         }
                     }
-                    $object = $cPrinterResource.Get()
+                    $cPrinterResource.Get().GetType().Name | Should Be 'cPrinter'
+                }
+            }
+            context "Get Enusre Absent" {
+                $cPrinterResource = [cPrinter]::new()
+                $cPrinterResource.Ensure = [Ensure]::Present
+                $cPrinterResource.Name = "printerExists"
+                $cPrinterResource.PortName = "printerExists"
 
-                    $object.GetType().Name | Should Be 'cPrinter'
+                it 'Get should return Absent if the printer does not exist' {
+                    Mock -CommandName Get-Printer -MockWith { throw }
+                    $cPrinterResource.Get().Ensure | Should be 'Absent'
+                }
+                it 'Get should return Absent if the printerPort does not exist' {
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { throw }
+                    $cPrinterResource.Get().Ensure | Should be 'Absent'
+                }
+            }
+            Function Get-ItemProperty { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path ) }
+            context "Get Printer Settings" {
+                $cPrinterResource = [cPrinter]::new()
+                $cPrinterResource.Ensure = [Ensure]::Present
+                $cPrinterResource.Name = "printerExists"
+                $cPrinterResource.PortName = "printerExists"
+                it 'Should return all properties for a RAW printer' {
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            DriverName = 'false Driver'
+                            Shared = [bool]::TrueString
+                            PermissionSDDL = 'perms'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = [bool]::TrueString
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                        } 
+                    }
+                    $ReturnedValues = $cPrinterResource.Get()
+                    $ReturnedValues.Ensure | Should be 'Present'
+                    $ReturnedValues.DriverName | Should be 'false Driver'
+                    $ReturnedValues.Shared | Should be $true
+                    $ReturnedValues.PermissionSDDL | Should be 'perms'
+                    $ReturnedValues.PortName | Should be 'Exists'
+                    $ReturnedValues.Address | Should be 'printer.local'
+                    $ReturnedValues.SNMPEnabled | Should be $true
+                    $ReturnedValues.SNMPCommunity | Should be 'public'
+                    $ReturnedValues.SNMPIndex | Should be 1
+                    $ReturnedValues.lprQueueName | Should be $null
+                }
+                it 'Should return all properties for a LPR printer' {
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            DriverName = 'false Driver'
+                            Shared = [bool]::TrueString
+                            PermissionSDDL = 'perms'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = [bool]::TrueString
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                            lprQueueName = 'testqueue'
+                        } 
+                    }
+                    $ReturnedValues = $cPrinterResource.Get()
+                    $ReturnedValues.Ensure | Should be 'Present'
+                    $ReturnedValues.DriverName | Should be 'false Driver'
+                    $ReturnedValues.Shared | Should be $true
+                    $ReturnedValues.PermissionSDDL | Should be 'perms'
+                    $ReturnedValues.PortName | Should be 'Exists'
+                    $ReturnedValues.Address | Should be 'printer.local'
+                    $ReturnedValues.SNMPEnabled | Should be $true
+                    $ReturnedValues.SNMPCommunity | Should be 'public'
+                    $ReturnedValues.SNMPIndex | Should be 1
+                    $ReturnedValues.lprQueueName | Should be 'testqueue'
+                }
+                it 'Should return all properties for a Papercut printer' {
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            DriverName = 'false Driver'
+                            Shared = [bool]::TrueString
+                            PermissionSDDL = 'perms'
+                        }
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'Exists'
+                            Description = 'PaperCut TCP/IP Port'
+                        }
+                    }
+                    Mock -CommandName Get-Item -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\Exists'
+                        }
+                    }
+                    Mock -CommandName Get-ItemProperty -MockWith {
+                        [System.Collections.Hashtable]@{
+                            HostName = 'papercut.local'
+                        }
+                    }
+                    $ReturnedValues = $cPrinterResource.Get()
+                    $ReturnedValues.Ensure | Should be 'Present'
+                    $ReturnedValues.DriverName | Should be 'false Driver'
+                    $ReturnedValues.Shared | Should be $true
+                    $ReturnedValues.PermissionSDDL | Should be 'perms'
+                    $ReturnedValues.PortName | Should be 'Exists'
+                    $ReturnedValues.Address | Should be 'papercut.local'
+                    #$ReturnedValues.SNMPEnabled | Should be $false
+                    $ReturnedValues.lprQueueName | Should be $null
                 }
             }
         }
