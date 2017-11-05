@@ -101,6 +101,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
                             PortName = 'printerExists'
+                            Shared = $true
                         }
                     }
                     Mock -CommandName Get-PrinterPort -MockWith {
@@ -108,6 +109,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                             Name = 'printerExists'
                         }
                     }
+                    $cPrinterResource.Shared = $true
                     $cPrinterResource.test() | should be $true
                 }
                 it 'Test should return false when printer is present and port is absent' {
@@ -129,6 +131,38 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     } 
                     $cPrinterResource.test() | should be $false
                 }
+            }
+            Context 'Ensure Correct Settings' {
+                $cPrinterResource = [cPrinter]::new()
+                $cPrinterResource.Ensure = [Ensure]::Present
+                $cPrinterResource.Name = "printerExists"
+                $cPrinterResource.PortName = "printerExists"
+                
+                it 'Test should return true with basic printer settings' {
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            DriverName = 'false Driver'
+                            PortName = 'printerExists'
+                            Shared = $true
+                            PermissionSDDL = 'perms'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = $true
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                        } 
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.test() | Should be $true
+                }
+
             }
         }
         Describe 'Get Method'{
@@ -173,7 +207,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 $cPrinterResource.Ensure = [Ensure]::Present
                 $cPrinterResource.Name = "printerExists"
                 $cPrinterResource.PortName = "printerExists"
-                it 'Should return all properties for a RAW printer' {
+                it 'Should return correct properties for a printer using a RAW port' {
                     Mock -CommandName Get-Printer -MockWith { 
                         [System.Collections.Hashtable]@{
                             Name = 'Exists'
@@ -203,7 +237,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $ReturnedValues.SNMPIndex | Should be 1
                     $ReturnedValues.lprQueueName | Should be $null
                 }
-                it 'Should return all properties for a LPR printer' {
+                it 'Should return correct properties for a printer using a LPR port' {
                     Mock -CommandName Get-Printer -MockWith { 
                         [System.Collections.Hashtable]@{
                             Name = 'Exists'
@@ -234,7 +268,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $ReturnedValues.SNMPIndex | Should be 1
                     $ReturnedValues.lprQueueName | Should be 'testqueue'
                 }
-                it 'Should return all properties for a Papercut printer' {
+                it 'Should return correct properties for a printer using a Papercut port' {
                     Mock -CommandName Get-Printer -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'Exists'
