@@ -25,13 +25,13 @@ class cPrinter {
     [System.String] $DriverName
 
     [DscProperty()]
-    [System.String] $Shared
+    [System.Boolean] $Shared
 
     [DscProperty()]
     [System.String] $PermissionSDDL
     
     [DscProperty()]
-    [System.String] $SNMPEnabled
+    [System.Boolean] $SNMPEnabled
 
     [DscProperty()]
     [System.String] $SNMPCommunity
@@ -89,9 +89,18 @@ class cPrinter {
         }
     }
     [bool] Test() {
-        $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
-        $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
+        try {
+            $printer = Get-Printer -Name $this.Name -Full
+        } catch {
+            $printer = $null
+        }
+        try {
+            $printerPort = Get-PrinterPort -Name $this.PortName
+        } catch {
+            $printerPort = $null
+        }
         if($this.Ensure -eq [Ensure]::Present){
+            # region test current printer settings
             if($null -eq $printer){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Ensure","Absent",$this.Ensure)
                 return $false
@@ -102,6 +111,19 @@ class cPrinter {
             }
             if($this.PortName -ne $printer.PortName){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
+                return $false
+            }
+            if ($null -ne $this.DriverName -and $this.DriverName -ne $printer.DriverName) {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
+                return $false
+            }
+            if ($null -ne $this.PermissionSDDL -and $this.PermissionSDDL -ne $printer.PermissionSDDL) {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PermissionSDDL",$printer.PermissionSDDL,$this.PermissionSDDL)
+                return $false
+            }
+            if($this.Shared.GetType().Name -eq 'Boolean' -and $this.Shared -ne $printer.Shared){
+                Write-Warning -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
                 return $false
             }
             return $true
