@@ -122,9 +122,22 @@ class cPrinter {
                 return $false
             }
             if($this.Shared.GetType().Name -eq 'Boolean' -and $this.Shared -ne $printer.Shared){
-                Write-Warning -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
                 return $false
+            }
+            if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMPEnabled,$this.SNMPEnabled)
+                return $false
+            }
+            if($this.SNMPEnabled -eq $true){ 
+                if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
+                    return $false
+                }
+                if($this.SNMPIndex -ne $printerPort.SNMPIndex){
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
+                    return $false
+                }
             }
             return $true
         } else {
