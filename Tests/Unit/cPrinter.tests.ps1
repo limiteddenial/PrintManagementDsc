@@ -107,9 +107,11 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
+                            SNMPEnabled = $false
                         }
                     }
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.SNMPEnabled = $false
                     $cPrinterResource.test() | should be $true
                 }
                 it 'Test should return false when printer is present and port is absent' {
@@ -137,30 +139,87 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 $cPrinterResource.Ensure = [Ensure]::Present
                 $cPrinterResource.Name = "printerExists"
                 $cPrinterResource.PortName = "printerExists"
-                
-                it 'Test should return true with basic printer settings' {
-                    Mock -CommandName Get-Printer -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                            DriverName = 'false Driver'
-                            PortName = 'printerExists'
-                            Shared = $true
-                            PermissionSDDL = 'perms'
-                        } 
-                    }
+                Mock -CommandName Get-Printer -MockWith { 
+                    [System.Collections.Hashtable]@{
+                        Name = 'printerExists'
+                        DriverName = 'false Driver'
+                        PortName = 'printerExists'
+                        Shared = $true
+                        PermissionSDDL = 'perms'
+                    } 
+                }
+                Mock -CommandName Get-PrinterPort -MockWith { 
+                    [System.Collections.Hashtable]@{
+                        Name = 'printerExists'
+                        PrinterHostAddress = 'printer.local'
+                        SNMPEnabled = $true
+                        SNMPCommunity = 'public'
+                        SNMPIndex = [int]'1'
+                    } 
+                }
+                it 'Test should return true when all printer settings are correct' {
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.test() | Should be $true
+                }
+                it 'Test should return false when the printer is not shared' {
+                    $cPrinterResource.Shared = $false
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.test() | Should be $false
+                }
+                it 'Test should return false when the printer has inccorect PermissionSDDL set' {
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'bad perms'
+                    $cPrinterResource.test() | Should be $false
+                }
+                it 'Test should return false when the printer has incorrect SNMPEnabled settings' {
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $false
+                    $cPrinterResource.SNMPCommunity = "private"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.test() | Should be $false
+                }
+                it 'Test should return true when the printer has incorrect SNMP settings but SNMPEnabled is set to false' {
                     Mock -CommandName Get-PrinterPort -MockWith { 
                         [System.Collections.Hashtable]@{
                             Name = 'printerExists'
                             PrinterHostAddress = 'printer.local'
-                            SNMPEnabled = $true
-                            SNMPCommunity = 'public'
-                            SNMPIndex = [int]'1'
+                            SNMPEnabled = $false
                         } 
                     }
                     $cPrinterResource.Shared = $true
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $false
+                    $cPrinterResource.SNMPCommunity = "private"
+                    $cPrinterResource.SNMPIndex = '12'
                     $cPrinterResource.test() | Should be $true
+                }
+                it 'Test should return false when the printer has incorrect SNMPCommunity settings' {
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "private"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.test() | Should be $false
+                }
+                it 'Test should return false when the printer has incorrect SNMPIndex settings' {
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '123'
+                    $cPrinterResource.test() | Should be $false
                 }
 
             }
