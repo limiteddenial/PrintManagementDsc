@@ -221,7 +221,46 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $cPrinterResource.SNMPIndex = '123'
                     $cPrinterResource.test() | Should be $false
                 }
-
+                it 'Test should return false when the printer has incorrect lprQueueName settings' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = $true
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                            lprQueueName = 'print'
+                        } 
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.lprQueueName = "lpr"
+                    $cPrinterResource.test() | Should be $false
+                }
+                it 'Test should return true when all printer settings are correct for a printer using LPR queue name' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = $true
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                            lprQueueName = 'lpr'
+                        } 
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.lprQueueName = "lpr"
+                    $cPrinterResource.test() | Should be $true
+                }
             }
         }
         Describe 'Get Method'{
