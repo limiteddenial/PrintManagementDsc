@@ -113,6 +113,23 @@ class cPrinter {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             }
+            $ReturnObject = [cPrinter]::new
+            if([bool]$printerPort.Description -eq "PaperCut TCP/IP Port"){
+                try {
+                    #To get Papercut address you need to look at the registry key
+                    $ReturnObject.Address = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
+                } catch {
+                    $ReturnObject.Address = $null
+                }
+            } else {
+                $ReturnObject.Address = $printerPort.PrinterHostAddress
+                $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
+                $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
+                $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
+                if($printerPort.lprQueueName){
+                    $ReturnObject.lprQueueName = $printerPort.lprQueueName
+                } 
+            }
             if ($null -ne $this.DriverName -and $this.DriverName -ne $printer.DriverName) {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
                 return $false
@@ -138,6 +155,10 @@ class cPrinter {
                     Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
                     return $false
                 }
+            }
+            if($this.lprQueueName -ne $printerPort.lprQueueName){
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)
+                return $false
             }
             return $true
         } else {
