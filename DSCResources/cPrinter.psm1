@@ -19,6 +19,9 @@ class cPrinter {
     [System.String] $PortName
 
     [DscProperty()]
+    [PortType] $PortType = [PortType]::TCPIP
+
+    [DscProperty()]
     [System.String] $Address
 
     [DscProperty()]
@@ -45,7 +48,7 @@ class cPrinter {
     hidden $Messages = ""
 
     cPrinter(){
-        $this.Messages = (Import-LocalizedData  -FileName cPrinterManagement.strings.psd1 -BaseDirectory (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH)))
+        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH)))
     }
 
     [void] Set(){
@@ -113,8 +116,8 @@ class cPrinter {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             }
-            $ReturnObject = [cPrinter]::new
-            if([bool]$printerPort.Description -eq "PaperCut TCP/IP Port"){
+            if($printerPort.Description -eq "PaperCut TCP/IP Port"){
+                $ReturnObject = [cPrinter]::new()
                 try {
                     #To get Papercut address you need to look at the registry key
                     $ReturnObject.Address = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
@@ -122,13 +125,16 @@ class cPrinter {
                     $ReturnObject.Address = $null
                 }
             } else {
+                $ReturnObject = [cPrinter]::new()
                 $ReturnObject.Address = $printerPort.PrinterHostAddress
-                $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
-                $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
-                $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
+                if($printerPort.SNMPEnabled -eq $true){
+                    $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
+                    $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
+                    $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
+                }
                 if($printerPort.lprQueueName){
                     $ReturnObject.lprQueueName = $printerPort.lprQueueName
-                } 
+                }
             }
             if ($null -ne $this.DriverName -and $this.DriverName -ne $printer.DriverName) {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
@@ -198,7 +204,7 @@ class cPrinter {
         } 
         if($printerPort){
             $ReturnObject.PortName = $printerPort.Name
-            if([bool]$printerPort.Description -eq "PaperCut TCP/IP Port"){
+            if($printerPort.Description -eq "PaperCut TCP/IP Port"){
                 try {
                     #To get Papercut address you need to look at the registry key
                     $ReturnObject.Address = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
@@ -209,13 +215,16 @@ class cPrinter {
                 $ReturnObject.SNMPEnabled = $false
                 $ReturnObject.SNMPCommunity = $null
                 $ReturnObject.SNMPIndex = $null
+                $ReturnObject.PortType = [PortType]::PaperCut
             } else {
                 $ReturnObject.Address = $printerPort.PrinterHostAddress
                 $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
                 $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
                 $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
+                $ReturnObject.PortType = [PortType]::TCPIP
                 if($printerPort.lprQueueName){
                     $ReturnObject.lprQueueName = $printerPort.lprQueueName
+                    $ReturnObject.PortType = [PortType]::LPR
                 } 
             }
         }
