@@ -116,24 +116,42 @@ class cPrinter {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             }
-            if($printerPort.Description -eq "PaperCut TCP/IP Port"){
-                $ReturnObject = [cPrinter]::new()
-                try {
-                    #To get Papercut address you need to look at the registry key
-                    $ReturnObject.Address = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
-                } catch {
-                    $ReturnObject.Address = $null
+            switch ($printerPort.Description) {
+                "PaperCut TCP/IP Port" {  
+                    try {
+                        #To get Papercut address you need to look at the registry key
+                        $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
+                    } catch {
+                        $currentAddress = $null
+                    }
+                    if($this.Address -ne $currentAddress) {
+                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Address",$currentAddress,$this.Address)
+                        return $false
+                    }
                 }
-            } else {
-                $ReturnObject = [cPrinter]::new()
-                $ReturnObject.Address = $printerPort.PrinterHostAddress
-                if($printerPort.SNMPEnabled -eq $true){
-                    $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
-                    $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
-                    $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
-                }
-                if($printerPort.lprQueueName){
-                    $ReturnObject.lprQueueName = $printerPort.lprQueueName
+                Default {
+                    if($this.Address -ne $printerPort.PrinterHostAddress){
+                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Address",$printerPort.PrinterHostAddress,$this.Address)
+                        return $false
+                    }
+                    if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
+                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMPEnabled,$this.SNMPEnabled)
+                        return $false
+                    }
+                    if($this.SNMPEnabled -eq $true){ 
+                        if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
+                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
+                            return $false
+                        }
+                        if($this.SNMPIndex -ne $printerPort.SNMPIndex){
+                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
+                            return $false
+                        }
+                    }
+                    if($this.lprQueueName -ne $printerPort.lprQueueName){
+                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)
+                        return $false
+                    }
                 }
             }
             if ($null -ne $this.DriverName -and $this.DriverName -ne $printer.DriverName) {
@@ -146,24 +164,6 @@ class cPrinter {
             }
             if($this.Shared.GetType().Name -eq 'Boolean' -and $this.Shared -ne $printer.Shared){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
-                return $false
-            }
-            if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
-                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMPEnabled,$this.SNMPEnabled)
-                return $false
-            }
-            if($this.SNMPEnabled -eq $true){ 
-                if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
-                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
-                    return $false
-                }
-                if($this.SNMPIndex -ne $printerPort.SNMPIndex){
-                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
-                    return $false
-                }
-            }
-            if($this.lprQueueName -ne $printerPort.lprQueueName){
-                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)
                 return $false
             }
             return $true
