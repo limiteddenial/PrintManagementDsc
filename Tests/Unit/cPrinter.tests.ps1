@@ -134,6 +134,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $cPrinterResource.test() | should be $false
                 }
             }
+            Function Get-ItemProperty { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path ) }
             Context 'Ensure Correct Settings' {
                 $cPrinterResource = [cPrinter]::new()
                 $cPrinterResource.Ensure = [Ensure]::Present
@@ -160,6 +161,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 it 'Test should return true when all printer settings are correct' {
                     $cPrinterResource.Shared = $true
                     $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $true
                     $cPrinterResource.SNMPCommunity = "public"
@@ -168,18 +170,21 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 }
                 it 'Test should return false when the printer is not shared' {
                     $cPrinterResource.Shared = $false
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.test() | Should be $false
                 }
                 it 'Test should return false when the printer has inccorect PermissionSDDL set' {
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'bad perms'
                     $cPrinterResource.test() | Should be $false
                 }
                 it 'Test should return false when the printer has incorrect SNMPEnabled settings' {
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $false
@@ -196,6 +201,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         } 
                     }
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $false
@@ -205,6 +211,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 }
                 it 'Test should return false when the printer has incorrect SNMPCommunity settings' {
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $true
@@ -214,6 +221,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 }
                 it 'Test should return false when the printer has incorrect SNMPIndex settings' {
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $true
@@ -233,6 +241,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         } 
                     }
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $true
@@ -253,6 +262,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         } 
                     }
                     $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'printer.local'
                     $cPrinterResource.DriverName = 'false Driver'
                     $cPrinterResource.PermissionSDDL = 'perms'
                     $cPrinterResource.SNMPEnabled = $true
@@ -260,6 +270,68 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $cPrinterResource.SNMPIndex = '1'
                     $cPrinterResource.lprQueueName = "lpr"
                     $cPrinterResource.test() | Should be $true
+                }
+                it 'Test should return false when printer has the incorrect Address set for a LPR Port' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = $true
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                            lprQueueName = 'lpr'
+                        } 
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'incorrect.local'
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.lprQueueName = "lpr"
+                    $cPrinterResource.test() | Should be $False
+                }
+                it 'Test should return false when printer has the incorrect Address set for a TCPIP Port' {
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = $true
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                        } 
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'incorrect.local'
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.PermissionSDDL = 'perms'
+                    $cPrinterResource.SNMPEnabled = $true
+                    $cPrinterResource.SNMPCommunity = "public"
+                    $cPrinterResource.SNMPIndex = '1'
+                    $cPrinterResource.test() | Should be $False
+                }
+                it 'Test should return false when printer has the incorrect Address set for a PaperCut Port' {
+                    Mock -CommandName Get-PrinterPort -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'printerExists'
+                            Description = 'PaperCut TCP/IP Port'
+                        }
+                    }
+                    Mock -CommandName Get-Item -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\printerExists'
+                        }
+                    }
+                    Mock -CommandName Get-ItemProperty -MockWith {
+                        [System.Collections.Hashtable]@{
+                            HostName = 'papercut.local'
+                        }
+                    }
+                    $cPrinterResource.Shared = $true
+                    $cPrinterResource.Address = 'incorrect.local'
+                    $cPrinterResource.DriverName = 'false Driver'
+                    $cPrinterResource.test() | Should be $False
                 }
             }
         }
