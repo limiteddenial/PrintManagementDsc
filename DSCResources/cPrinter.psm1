@@ -52,16 +52,53 @@ class cPrinter {
     }
 
     [void] Set(){
-        $printer = Get-Printer -Name $this.Name -Full -ErrorAction SilentlyContinue
-        $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction SilentlyContinue
+        try {
+            $printer = Get-Printer -Name $this.Name -Full
+        } catch {
+            $printer = $null
+        }
+        try {
+            $printerPort = Get-PrinterPort -Name $this.PortName
+        } catch {
+            $printerPort = $null
+        }
         if($this.Ensure -eq [Ensure]::Present){
+            # We need to create the port before we can create the printer
             if($null -eq $printerPort){
-                Write-Verbose -Message "Creating new Printer Port"
-                $PrinterPortParamaters = @{
-                    Name = $this.PortName
-                    PrinterHostAddress =  "local.test"
-                }
-                Add-PrinterPort @PrinterPortParamaters
+                Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortTyp,$this.PortNamee)
+                switch ($this.PortType) {
+                    'PaperCut' {
+                        #TODO
+                    }
+                    'LPR' {
+                        $PrinterPortParamaters = @{
+                            Name = $this.PortName
+                            LprHostAddress =  $this.Address
+                            LprQueueName = $this.lprQueueName
+                            LprByteCounting = $true
+                        }
+                        if($this.SNMPEnabled -eq $true) {
+                            $PrinterPortParamaters.SNMP = $this.SNMPEnabled
+                            $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                            $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
+                        }
+                        Add-PrinterPort @PrinterPortParamaters -WhatIf
+                    }
+                    Default {
+                        # Default is as Standard TCPIP Port
+                        $PrinterPortParamaters = @{
+                            Name = $this.PortName
+                            PrinterHostAddress =  $this.Address 
+                        }
+                        if($this.SNMPEnabled -eq $true) {
+                            $PrinterPortParamaters.SNMP = $this.SNMPEnabled
+                            $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                            $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
+                        }
+                        Add-PrinterPort @PrinterPortParamaters -WhatIf
+                    }
+                } # End Switch PortType
+
             }
             if($null -eq $printer){
                 $PrinterParamaters = @{
