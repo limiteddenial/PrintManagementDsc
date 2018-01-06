@@ -65,7 +65,7 @@ class cPrinter {
         if($this.Ensure -eq [Ensure]::Present){
             # We need to create the port before we can create the printer
             if($null -eq $printerPort){
-                Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortTyp,$this.PortNamee)
+                Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType,$this.PortNamee)
                 switch ($this.PortType) {
                     'PaperCut' {
                         #TODO
@@ -82,7 +82,7 @@ class cPrinter {
                             $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
                             $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
-                        Add-PrinterPort @PrinterPortParamaters -WhatIf
+                        Add-PrinterPort @PrinterPortParamaters
                     }
                     Default {
                         # Default is as Standard TCPIP Port
@@ -95,7 +95,7 @@ class cPrinter {
                             $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
                             $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
-                        Add-PrinterPort @PrinterPortParamaters -WhatIf
+                        Add-PrinterPort @PrinterPortParamaters
                     }
                 } # End Switch PortType
 
