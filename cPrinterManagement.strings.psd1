@@ -5,4 +5,5 @@ ConvertFrom-StringData @'
     PrinterDoesNotExist=Printer {0} does not exist
     PrinterPortDoesNotExist=PrinterPort {0} does not exist
     PrinterNoDriver=Driver {0} does not exist. Printer {1} cannot be added
+    UpdatedDesiredState={0} will be updated to match desired state. New value: {1} - Old Value: {2}
 '@

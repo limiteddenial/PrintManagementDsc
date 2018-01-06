@@ -21,10 +21,10 @@ class cPrinter {
     [DscProperty()]
     [PortType] $PortType = [PortType]::TCPIP
 
-    [DscProperty()]
+    [DscProperty(Mandatory)]
     [System.String] $Address
 
-    [DscProperty()]
+    [DscProperty(Mandatory)]
     [System.String] $DriverName
 
     [DscProperty()]
@@ -34,13 +34,13 @@ class cPrinter {
     [System.String] $PermissionSDDL
     
     [DscProperty()]
-    [System.Boolean] $SNMPEnabled
+    [System.Boolean] $SNMPEnabled = $true
 
     [DscProperty()]
     [System.String] $SNMPCommunity = 'public'
 
     [DscProperty()]
-    [System.String] $SNMPIndex = [int]1
+    [System.Int16] $SNMPIndex = 1
 
     [DscProperty()]
     [System.String] $lprQueueName
@@ -65,6 +65,9 @@ class cPrinter {
             $printerPort = $null
         }
         if($this.Ensure -eq [Ensure]::Present){
+            # Creating variables to determine if new a new printer or printerPort was just created. 
+            # Doing this to bypass excess setting checks as the settings would already set correctly
+            [bool]$newPrinter, [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
             if($null -eq $printerPort){
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType,$this.PortNamee)
@@ -100,6 +103,7 @@ class cPrinter {
                         Add-PrinterPort @PrinterPortParamaters
                     } # End Default
                 } # End Switch PortType
+                $newPrinterPort = $true
             } # End If PrinterPort
             if($null -eq $printer){
                 if($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )){
@@ -118,8 +122,35 @@ class cPrinter {
                     $PrinterParamaters.Shared = $this.Shared
                 }
                 Add-Printer @PrinterParamaters
+                $newPrinter = $true
             } # End If Printer
 
+            # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
+            if ($newPrinter -eq $false) {
+                $UpdatePrinterParamaters = @{
+                    Name = $this.Name
+                    # This will get populated if any settings are not correct
+                }
+                if ($printer.DriverName -ne $this.DriverName) {
+                    # Need to check if the driver exists before attempting to set the printer to use it
+                    if($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )){
+                        Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName,$this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
+                        return
+                    }
+                    # Updating variable to notify that the driver needs to be updated
+                    $UpdatePrinterParamaters.DriverName = $this.DriverName
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'DriverName',$this.DriverName,$printer.DriverName)
+                } # End If DriverName
+
+                if($UpdatePrinterParamaters.count -gt 1){
+                    Set-Printer @UpdatePrinterParamaters
+                }
+            } # End If NewPrinter
+
+            # If the printerPort already existed the settings need to be checked. Otherwise the printer was just created with specified settings
+            if ($newPrinterPort -eq $false) {
+
+            } #End If NewPrinterPort
         } else {
             if($null -ne $printer){
                 $PrinterParamaters = @{
@@ -233,13 +264,13 @@ class cPrinter {
         $ReturnObject = [cPrinter]::new()
         # Gathering the printer properties
         try {
-            $printer = Get-Printer -Name $this.Name -Full
+            $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
         } catch {
             $ReturnObject.Ensure = [Ensure]::Absent
             return $ReturnObject
         } 
         try {
-            $printerPort = Get-PrinterPort -Name $this.PortName
+            $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
         } catch {
             $ReturnObject.Ensure = [Ensure]::Absent
             return $ReturnObject
