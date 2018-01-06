@@ -53,13 +53,15 @@ class cPrinter {
 
     [void] Set(){
         try {
-            $printer = Get-Printer -Name $this.Name -Full
+            $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
         } catch {
+            Write-Verbose -Message ($this.Messages.PrinterDoesNotExist -f $this.Name)
             $printer = $null
-        }
+        } 
         try {
-            $printerPort = Get-PrinterPort -Name $this.PortName
+            $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
         } catch {
+            Write-Verbose -Message ($this.Messages.PrinterPortDoesNotExist -f $this.PortName)
             $printerPort = $null
         }
         if($this.Ensure -eq [Ensure]::Present){
@@ -100,6 +102,10 @@ class cPrinter {
                 } # End Switch PortType
             } # End If PrinterPort
             if($null -eq $printer){
+                if($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )){
+                    Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName,$this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
+                    return
+                }
                 $PrinterParamaters = @{
                     Name = $this.Name
                     PortName = $this.PortName
