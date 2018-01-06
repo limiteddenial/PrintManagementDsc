@@ -28,7 +28,7 @@ class cPrinter {
     [System.String] $DriverName
 
     [DscProperty()]
-    [System.Boolean] $Shared
+    [System.Boolean] $Shared = $true
 
     [DscProperty()]
     [System.String] $PermissionSDDL
@@ -37,10 +37,10 @@ class cPrinter {
     [System.Boolean] $SNMPEnabled
 
     [DscProperty()]
-    [System.String] $SNMPCommunity
+    [System.String] $SNMPCommunity = 'public'
 
     [DscProperty()]
-    [System.String] $SNMPIndex
+    [System.String] $SNMPIndex = [int]1
 
     [DscProperty()]
     [System.String] $lprQueueName
@@ -69,7 +69,7 @@ class cPrinter {
                 switch ($this.PortType) {
                     'PaperCut' {
                         #TODO
-                    }
+                    } # End PaperCut
                     'LPR' {
                         $PrinterPortParamaters = @{
                             Name = $this.PortName
@@ -83,7 +83,7 @@ class cPrinter {
                             $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
                         Add-PrinterPort @PrinterPortParamaters
-                    }
+                    } # End LPR
                     Default {
                         # Default is as Standard TCPIP Port
                         $PrinterPortParamaters = @{
@@ -96,18 +96,24 @@ class cPrinter {
                             $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
                         Add-PrinterPort @PrinterPortParamaters
-                    }
+                    } # End Default
                 } # End Switch PortType
-
-            }
+            } # End If PrinterPort
             if($null -eq $printer){
                 $PrinterParamaters = @{
                     Name = $this.Name
                     PortName = $this.PortName
                     DriverName = $this.DriverName
                 }
+                if($null -ne $this.PermissionSDDL){
+                    $PrinterParamaters.PermissionSDDL = $this.PermissionSDDL
+                } # End If PermissionsSDDL
+                if($null -ne $this.Shared){
+                    $PrinterParamaters.Shared = $this.Shared
+                }
                 Add-Printer @PrinterParamaters
-            }
+            } # End If Printer
+
         } else {
             if($null -ne $printer){
                 $PrinterParamaters = @{
@@ -117,7 +123,7 @@ class cPrinter {
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 }
                 Remove-Printer @PrinterParamaters
-            }
+            } # End If Printer
             if($null -ne $printerPort){
                 try {
                     Remove-PrinterPort -Name $this.PortName
@@ -125,9 +131,9 @@ class cPrinter {
                     Restart-Service -Name Spooler -Force
                     Remove-PrinterPort -Name $this.PortName
                 }
-            }
-        }
-    }
+            } # End If PrinterPort
+        } # End Else absent
+    } # End Set()
     [bool] Test() {
         try {
             $printer = Get-Printer -Name $this.Name -Full

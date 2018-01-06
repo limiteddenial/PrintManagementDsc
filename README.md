@@ -49,15 +49,15 @@ cPrintDriverSet resource has the following properties:
 cPrinter resource has the following properties:
 
 - **Name**: The desired printer name
-- **PortType**: The desired printer port type. Possible values: "TCPIP","Papercut","LPR"
+- **PortType**: *Possible values: ("TCPIP","Papercut","LPR")* - The desired printer port type
 - **PortName**: The desired printer port name
 - **Address**: The desired printer address
 - **DriverName**: The desired driver name to be used
 - **LprQueue**: The desired queue name used if PortType is LPR
-- **Shared**: Sets the desired shared state of the printer
+- **Shared**: *Default Value is $true* - Sets the desired shared state of the printer 
 - **SNMPEnabled**: Enables or disables SNMP on the printer port
-- **SNMPCommunityName**: Sets the desired community name used for SNMP communication if SNMP is enabled. Defaults to "public"
-- **SNMPIndex**: Sets the desired index used for SNMP communication if SNMP is enabled. Defaults to 1
+- **SNMPCommunityName**: *Default Value is "public"* - Sets the desired community name used for SNMP communication if SNMP is enabled. 
+- **SNMPIndex**: *Default Value is 1* - Sets the desired index used for SNMP communication if SNMP is enabled. 
 - **PermissionsSDDL**: The desired permissions of a printer
 
 ### cPrinter Examples
