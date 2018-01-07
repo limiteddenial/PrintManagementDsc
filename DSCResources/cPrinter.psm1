@@ -144,14 +144,20 @@ class cPrinter {
                 if($printer.Shared -ne $this.Shared) {
                     $UpdatePrinterParamaters.Shared = $this.Shared
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Shared',$this.Shared,$printer.Shared)
-                }
+                } # End If Shared
                 if($null -ne $this.PermissionSDDL -and $printer.PermissionSDDL -ne $this.PermissionSDDL){
                     $UpdatePrinterParamaters.PermissionSDDL = $this.PermissionSDDL
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PermissionSDDL',$this.PermissionSDDL,$printer.PermissionSDDL)
-                }
+                } # End If PermissionSDDL
+                if($printer.PortName -ne $this.PortName){
+                    $UpdatePrinterParamaters.PortName = $this.PortName
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PortName',$this.PortName,$printer.PortName)
+                    # To make changes we need to make sure there are no jobs queued up on the printer
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                } # End If PrinterPort
                 if($UpdatePrinterParamaters.count -gt 1){
                     Set-Printer @UpdatePrinterParamaters
-                }
+                } # End If UpdatePrinterParamaters
             } # End If NewPrinter
 
             # If the printerPort already existed the settings need to be checked. Otherwise the printer was just created with specified settings
@@ -163,9 +169,7 @@ class cPrinter {
                 $PrinterParamaters = @{
                     Name = $this.Name
                 }
-                if($null -ne (Get-PrintJob -PrinterName $this.Name)) {
-                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
-                }
+                Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 Remove-Printer @PrinterParamaters
             } # End If Printer
             if($null -ne $printerPort){
