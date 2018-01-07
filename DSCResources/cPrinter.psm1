@@ -126,22 +126,25 @@ class cPrinter {
             } # End If Printer
 
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
-            if ($newPrinter -eq $false) {
+            if($newPrinter -eq $false) {
                 $UpdatePrinterParamaters = @{
                     Name = $this.Name
                     # This will get populated if any settings are not correct
                 }
-                if ($printer.DriverName -ne $this.DriverName) {
+                if($printer.DriverName -ne $this.DriverName) {
                     # Need to check if the driver exists before attempting to set the printer to use it
                     if($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )){
                         Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName,$this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
                         return
-                    }
+                    } # End If Print Driver
                     # Updating variable to notify that the driver needs to be updated
                     $UpdatePrinterParamaters.DriverName = $this.DriverName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'DriverName',$this.DriverName,$printer.DriverName)
                 } # End If DriverName
-
+                if($printer.Shared -ne $this.Shared) {
+                    $UpdatePrinterParamaters.Shared = $this.Shared
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Shared',$this.Shared,$printer.Shared)
+                }
                 if($UpdatePrinterParamaters.count -gt 1){
                     Set-Printer @UpdatePrinterParamaters
                 }

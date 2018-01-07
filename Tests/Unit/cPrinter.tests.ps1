@@ -470,7 +470,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     $ReturnedValues.PermissionSDDL | Should be 'perms'
                     $ReturnedValues.PortName | Should be 'Exists'
                     $ReturnedValues.Address | Should be 'papercut.local'
-                    #$ReturnedValues.SNMPEnabled | Should be $false
+                    $ReturnedValues.SNMPEnabled | Should be $false
                     $ReturnedValues.lprQueueName | Should be $null
                 }
             }
@@ -510,15 +510,18 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         [System.Collections.Hashtable]@{
                             Name = 'newPrinter'
                             DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
                         } 
                     }
                     Mock -CommandName Add-PrinterPort -MockWith {}
                     Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Set-Printer -MockWith { }
                     $cPrinterResource.Set()
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                 }
                 it 'Add-PrinterPort and Add-Printer both should be called 1 time' {
                     Mock -CommandName Get-PrinterPort -MockWith { }
@@ -545,6 +548,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                         [System.Collections.Hashtable]@{
                             Name = 'newPrinter'
                             DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
                         } 
                     }
                     Mock -CommandName Add-PrinterPort -MockWith { }
@@ -641,7 +645,8 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 $cPrinterResource.PortName = "myPort"
                 $cPrinterResource.Address = "printer.local"
                 $cPrinterResource.DriverName = "myDriver"
-                
+                $cPrinterResource.Shared = $true
+
                 it 'Update Printer Driver ' {
                     Mock -CommandName Get-Printer -MockWith { 
                         [System.Collections.Hashtable]@{
@@ -669,6 +674,33 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Set-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq "myPrinter" -and $DriverName -eq "myDriver"}
+                }
+                it 'Update Printer Shared' {
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::FalseString
+                            PermissionSDDL = 'perms'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPort'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = [bool]::TrueString
+                            SNMPCommunity = 'public'
+                            SNMPIndex = '1'
+                        } 
+                    }
+                    
+                    Mock -CommandName Set-Printer -MockWith {} -ParameterFilter {$Name -eq "myPrinter" -and $Shared -eq [bool]::FalseString }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq "myPrinter" -and $Shared -eq [bool]::FalseString }
                 }
             }
         }
