@@ -117,7 +117,7 @@ class cPrinter {
                 }
                 if($null -ne $this.PermissionSDDL){
                     $PrinterParamaters.PermissionSDDL = $this.PermissionSDDL
-                } # End If PermissionsSDDL
+                } # End If PermissionSDDL
                 if($null -ne $this.Shared){
                     $PrinterParamaters.Shared = $this.Shared
                 }
@@ -144,6 +144,10 @@ class cPrinter {
                 if($printer.Shared -ne $this.Shared) {
                     $UpdatePrinterParamaters.Shared = $this.Shared
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Shared',$this.Shared,$printer.Shared)
+                }
+                if($null -ne $this.PermissionSDDL -and $printer.PermissionSDDL -ne $this.PermissionSDDL){
+                    $UpdatePrinterParamaters.PermissionSDDL = $this.PermissionSDDL
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PermissionSDDL',$this.PermissionSDDL,$printer.PermissionSDDL)
                 }
                 if($UpdatePrinterParamaters.count -gt 1){
                     Set-Printer @UpdatePrinterParamaters
