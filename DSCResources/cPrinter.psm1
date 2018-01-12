@@ -40,7 +40,7 @@ class cPrinter {
     [System.String] $SNMPCommunity = 'public'
 
     [DscProperty()]
-    [System.Int16] $SNMPIndex = 1
+    [System.UInt32] $SNMPIndex = 1
 
     [DscProperty()]
     [System.String] $lprQueueName
@@ -162,8 +162,72 @@ class cPrinter {
 
             # If the printerPort already existed the settings need to be checked. Otherwise the printer was just created with specified settings
             if ($newPrinterPort -eq $false) {
+                $currentPortType = [PortType]$this.FindPortType()
+                if($currentPortType -ne $this.PortType){
+                    Write-Verbose -Message ($this.Messages.NotInDesiredState -f "PortType",$currentPortType,$this.PortType)
+                    # If there are any printjobs queued on the printer it will cause issues changing the porttype so we will remove the print jobs
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                    switch ($currentPortType){
+                        'PaperCut' {
+                            # We required removing the exising port so a temp port needs to be created
+                            # We do a while loop to make sure the port name doesn't already exist
+                            $tempPortName = -join (1..9 | Get-Random -Count 5)
+                            while((Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) -ne $null){
+                                # We need to generate a new portname and then restart the 
+                                $tempPortName = -join (1..9 | Get-Random -Count 5)
+                            }
+                            $tempPrinterPortParamaters = @{
+                                Name = $tempPortName
+                                PrinterHostAddress =  $this.Address 
+                            } # End PrinterPortParamaters
+                            Add-PrinterPort @tempPrinterPortParamaters
+                            # We are updating the printer to use the new port while we convert the port to the desired type
+                            $tempPrinterParamaters = @{
+                                Name = $this.Name
+                                PortName = $tempPortName
+                            }
+                            Set-Printer @tempPrinterParamaters
+                            # Lets remove the Papercut Port
+                            Remove-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP$([char]0x002f)IP Port\Ports\{0}" -f $this.PortName)
+                            # To take effect the spooler needs to be rebooted
+                            Restart-Service -Name "Spooler" -Force
+                            $newPrinterPortParamaters = @{
+                                Name = $this.PortName
+                            }
+                            if($this.SNMPEnabled -eq $true) {
+                                $newPrinterPortParamaters.SNMP = $this.SNMPEnabled
+                                $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                                $newPrinterPortParamaters.SNMPIndex = $this.SNMPIndex
+                            }
+                            switch ($this.PortType) {
+                                'LPR' {
+                                    $newPrinterPortParamaters.LprHostAddress =  $this.Address
+                                    $newPrinterPortParamaters.LprQueueName = $this.lprQueueName
+                                    $newPrinterPortParamaters.LprByteCounting = $true
+                                } # End LPR
+                                'TCPIP' {
+                                    $newPrinterPortParamaters.PrinterHostAddress =  $this.Address 
+                                } # End TCPIP
+                            } # End Switch this.PortType
+                            Add-PrinterPort @newPrinterPortParamaters
+                            $updatePrinterParamaters = @{
+                                Name = $this.Name
+                                PortName = $this.PortName
+                            }
+                            # Changing the printer to use the new port
+                            Set-Printer @updatePrinterParamaters
+                            # To clean up we will remove the temp printer port
+                            Remove-PrinterPort @tempPrinterPortParamaters
+                        } # End Papercut
+                        [PortType]::LPR {
+                            
+                        } # End LPR
+                        [PortType]::TCPIP {
 
-            } #End If NewPrinterPort
+                        } # End TCPIP
+                    } # End Switch currentPortType
+                } # End If not CurrentPortType 
+            } # End If not NewPrinterPort
         } else {
             if($null -ne $printer){
                 $PrinterParamaters = @{
@@ -325,4 +389,21 @@ class cPrinter {
         } # End PrinterPort
         return $ReturnObject
     } # End GET()
+    hidden [System.String] FindPortType() {
+        # Gathering the port information
+        $getPortInformation = Get-CimInstance -Query ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName) 
+
+        switch ($getPortInformation.Protocol) {
+            1 { # TCPIP  
+                return [PortType]::TCPIP
+            } # End 1
+            2 { # LPR
+                return [PortType]::LPR
+            } # End 2
+        } # End Switch
+        if($getPortInformation.Description -eq "PaperCut TCP/IP Port"){
+            return [PortType]::PaperCut
+        } # End If Description
+        return $null
+    } # End FindPortType()
 } # End Class
