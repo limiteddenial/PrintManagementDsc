@@ -533,7 +533,33 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                 }
+                it 'PaperCut Port is created' {
+                    $cPrinterResource.PortType = 'PaperCut'
+                    Mock -CommandName Get-PrinterPort -MockWith { }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'newPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
+                            PortName = 'newPrinter'
+                        } 
+                    }
+                    Mock -CommandName Add-PrinterPort -MockWith {}
+                    Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Set-Printer -MockWith { }
+                    Mock -CommandName Invoke-Command -MockWith { }
+                    Mock -CommandName Restart-Service -MockWith { }
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                }
                 it 'Add-PrinterPort and Add-Printer both should be called 1 time' {
+                    $cPrinterResource.PortType = 'TCPIP'
                     Mock -CommandName Get-PrinterPort -MockWith { }
                     Mock -CommandName Get-Printer -MockWith { }
                     Mock -CommandName Add-PrinterPort -MockWith { }
