@@ -213,7 +213,16 @@ class cPrinter {
                                     Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParamaters -PutType UpdateOnly | Out-Null
                                 } # End TCPIP
                                 'PaperCut' {
-
+                                    $tempPort = $this.UseTempPort()
+                                    Remove-PrinterPort -Name $this.PortName
+                                    $this.CreatePaperCutPort()
+                                    $updatePrinterParamaters = @{
+                                        Name = $this.Name
+                                        PortName = $this.PortName
+                                    }  
+                                    Set-Printer @updatePrinterParamaters
+                                    # To clean up we will remove the temp printer port
+                                    Remove-PrinterPort -Name $tempPort
                                 } # End PaperCut
                             } # End Switch this.PortType
                         } # End LPR
