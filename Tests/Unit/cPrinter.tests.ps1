@@ -1179,6 +1179,66 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
                 }
             } # End Context Convert PortType
+            context 'Update Port Settings' {
+                $cPrinterResource = [cPrinter]::new()
+                $cPrinterResource.Ensure = [Ensure]::Present
+                $cPrinterResource.Name = "myPrinter"
+                $cPrinterResource.PortName = "myPort"
+                $cPrinterResource.Address = "printer.local"
+                $cPrinterResource.DriverName = "myDriver"
+                $cPrinterResource.Shared = $true
+
+                it 'Update PaperCut Port Address' {
+                    $cPrinterResource.PortType = 'PaperCut'
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            Description = "PaperCut TCP/IP Port"
+                        }
+                    }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
+                            PortName = 'myPort'
+                        } 
+                    }
+                    Mock -CommandName Get-Item -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPort'
+                        }
+                    }
+                    Mock -CommandName Get-ItemProperty -MockWith {
+                        [System.Collections.Hashtable]@{
+                            HostName = 'badaddress.local'
+                        }
+                    }
+                    Mock -CommandName Invoke-Command -MockWith { }
+                    Mock -CommandName Add-PrinterPort -MockWith {}
+                    Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Set-Printer -MockWith { }
+                    Mock -CommandName Restart-Service -MockWith { }
+                    Mock -CommandName Get-CimInstance -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            Protocol = $null
+                            Description = "PaperCut TCP/IP Port"
+                        }
+                    } -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    Assert-MockCalled -CommandName Get-Item -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-ItemProperty -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                }
+            }
         } # End Describe Set Method
     } <#
 } finally {
