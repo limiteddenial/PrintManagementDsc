@@ -219,11 +219,32 @@ class cPrinter {
                             # To clean up we will remove the temp printer port
                             Remove-PrinterPort @tempPrinterPortParamaters
                         } # End Papercut
-                        [PortType]::LPR {
-                            
-                        } # End LPR
-                        [PortType]::TCPIP {
+                        'LPR' {
+                            switch ($this.PortType) {
+                                'TCPIP' {
+                                    $UpdatePortParamaters = @{
+                                        Protocol = 1
+                                        PortNumber = 9100
+                                    }
+                                    # Need to Use WMI as CIM has the objects as read only
+                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParamaters -PutType UpdateOnly | Out-Null
+                                } # End TCPIP
+                                'PaperCut' {
 
+                                } # End PaperCut
+                            } # End Switch this.PortType
+                        } # End LPR
+                        'TCPIP' {
+                            switch ($this.PortType) {
+                                'LPR' {
+                                    $UpdatePortParamaters = @{
+                                        Protocol = 2
+                                        Queue = $this.lprQueueName
+                                    }
+                                    # Need to Use WMI as CIM has the objects as read only
+                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParamaters -PutType UpdateOnly | Out-Null
+                                } # End LPR
+                            } # End Switch this.PortType
                         } # End TCPIP
                     } # End Switch currentPortType
                 } # End If not CurrentPortType 
