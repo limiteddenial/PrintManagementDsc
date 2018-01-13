@@ -169,24 +169,7 @@ class cPrinter {
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                     switch ($currentPortType){
                         'PaperCut' {
-                            # We required removing the exising port so a temp port needs to be created
-                            # We do a while loop to make sure the port name doesn't already exist
-                            $tempPortName = -join (1..9 | Get-Random -Count 5)
-                            while((Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) -ne $null){
-                                # We need to generate a new portname and then restart the 
-                                $tempPortName = -join (1..9 | Get-Random -Count 5)
-                            }
-                            $tempPrinterPortParamaters = @{
-                                Name = $tempPortName
-                                PrinterHostAddress =  $this.Address 
-                            } # End PrinterPortParamaters
-                            Add-PrinterPort @tempPrinterPortParamaters
-                            # We are updating the printer to use the new port while we convert the port to the desired type
-                            $tempPrinterParamaters = @{
-                                Name = $this.Name
-                                PortName = $tempPortName
-                            }
-                            Set-Printer @tempPrinterParamaters
+                            $tempPort = $this.UseTempPort()
                             # Lets remove the Papercut Port
                             Remove-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP$([char]0x002f)IP Port\Ports\{0}" -f $this.PortName)
                             # To take effect the spooler needs to be rebooted
@@ -217,7 +200,7 @@ class cPrinter {
                             # Changing the printer to use the new port
                             Set-Printer @updatePrinterParamaters
                             # To clean up we will remove the temp printer port
-                            Remove-PrinterPort @tempPrinterPortParamaters
+                            Remove-PrinterPort -Name $tempPort
                         } # End Papercut
                         'LPR' {
                             switch ($this.PortType) {
@@ -427,4 +410,25 @@ class cPrinter {
         } # End If Description
         return $null
     } # End FindPortType()
+    hidden [System.String] UseTempPort() {
+        # We required removing the exising port so a temp port needs to be created
+        # We do a while loop to make sure the port name doesn't already exist
+        $tempPortName = -join (1..9 | Get-Random -Count 5)
+        while((Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) -ne $null){
+            # We need to generate a new portname and then restart the 
+            $tempPortName = -join (1..9 | Get-Random -Count 5)
+        }
+        $tempPrinterPortParamaters = @{
+            Name = $tempPortName
+            PrinterHostAddress =  $this.Address 
+        } # End PrinterPortParamaters
+        Add-PrinterPort @tempPrinterPortParamaters
+        # We are updating the printer to use the new port while we convert the port to the desired type
+        $tempPrinterParamaters = @{
+            Name = $this.Name
+            PortName = $tempPortName
+        }
+        Set-Printer @tempPrinterParamaters
+        return $tempPortName
+    } # End UseTempPort()
 } # End Class
