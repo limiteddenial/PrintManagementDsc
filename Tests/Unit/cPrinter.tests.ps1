@@ -1130,6 +1130,54 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Get-WmiObject -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Set-WmiInstance -Times 1 -Exactly -Scope It
                 }
+                it 'Convert PortType TCPIP -> PaperCut' {
+                    $cPrinterResource.PortType = "PaperCut"
+                    Mock -CommandName Get-Printer -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
+                            PermissionSDDL = 'perms'
+                            PortName = 'myPort'
+                        } 
+                    }
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPort'
+                            PrinterHostAddress = 'printer.local'
+                            SNMPEnabled = [bool]::TrueString
+                            SNMPCommunity = 'public'
+                            SNMPIndex = [int]'1'
+                        } 
+                    }
+                    Mock -CommandName Get-CimInstance -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Protocol = 1 # LPR
+                            Description = $null
+                        }
+                    } -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+
+                    Mock -CommandName Get-Printjob -MockWith { }
+                    Mock -CommandName Remove-PrintJob -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $true }
+                    Mock -CommandName Set-WmiInstance -MockWith { }
+                    Mock -CommandName Invoke-Command -MockWith { }
+                    Mock -CommandName Restart-Service -MockWith { }
+                   
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-Printjob -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Remove-PrintJob -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}                    
+                    Assert-MockCalled -CommandName Remove-PrinterPort -Times 2 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                }
             } # End Context Convert PortType
         } # End Describe Set Method
     } <#
