@@ -73,7 +73,7 @@ class cPrinter {
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType,$this.PortNamee)
                 switch ($this.PortType) {
                     'PaperCut' {
-                        #TODO
+                        $this.CreatePaperCutPort()
                     } # End PaperCut
                     'LPR' {
                         $PrinterPortParamaters = @{
@@ -393,6 +393,20 @@ class cPrinter {
         } # End PrinterPort
         return $ReturnObject
     } # End GET()
+    hidden [void] CreatePaperCutPort() {
+        # To create the PaperCut port we need to create a registry key however we can't use new-item due to 'PaperCut TCP/IP Port' the cmdlet switches / to a \. 
+        # Using the 'PaperCut TCP$([char]0x002f)IP Port' does not work. So we are just using reg.exe to add the key
+        # Wrapping the Reg.exe commands in invoke-command to be able to create tests
+        Invoke-Command -ScriptBlock { 
+            param($PortName,$Address)
+            $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
+            & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f | Out-Null
+            # Sets the port number to 9100
+            & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v PortNumber /t REG_DWORD /d 0x0000238c /f | Out-Null          
+        } -ArgumentList ($this.PortName,$this.Address)
+        # Need to restart the spooler service before the port is usable
+        Restart-Service -Name 'Spooler' -Force
+    } # End CreatePaperCutPort()
     hidden [System.String] FindPortType() {
         # Gathering the port information
         $getPortInformation = Get-CimInstance -Query ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName) 
