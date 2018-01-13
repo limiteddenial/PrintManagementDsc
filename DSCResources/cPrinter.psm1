@@ -251,7 +251,26 @@ class cPrinter {
                             } # End Switch this.PortType
                         } # End TCPIP
                     } # End Switch currentPortType
+                    # The ports were converted the setting will be in the desired state.
+                    return
                 } # End If not CurrentPortType 
+                switch ($currentPortType){
+                    'PaperCut' {
+                        try {
+                            #To get Papercut address you need to look at the registry key
+                            $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
+                        } catch {
+                            $currentAddress = $null
+                        } # End try/catch CurrentAddress
+                        if($this.Address -ne $currentAddress) {
+                            Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address",$this.Address,$currentAddress)
+                            $this.CreatePaperCutPort() #This will just update the registry keys
+                        } # End Address
+                    } # End PaperCut
+                    Default {
+
+                    } # End Default
+                } # End Switch $currentPortType
             } # End If not NewPrinterPort
         } else {
             if($null -ne $printer){
