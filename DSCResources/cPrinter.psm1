@@ -268,7 +268,35 @@ class cPrinter {
                         } # End Address
                     } # End PaperCut
                     Default {
-
+                        $newPrinterPortParamaters =@{
+                            Name = $this.PortName
+                        } # End newPrinterPortParamaters
+                        if($currentPortType -eq 'LPR' -and $printerPort.lprQueueName -ne $this.lprQueueName){
+                            Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "lprQueueName",$this.lprQueueName,$printerPort.lprQueueName)
+                            $newPrinterPortParamaters.lprQueueName = $this.lprQueueName
+                        } # End If LprQueuename
+                        if($this.Address -ne $printerPort.PrinterHostAddress) {
+                            Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address",$this.Address,$printerPort.PrinterHostAddress)
+                            $newPrinterPortParamaters.PrinterHostAddress = $this.Address
+                        } # End If Address
+                        if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
+                            Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPEnabled",$this.SNMPEnabled,$printerPort.SNMPEnabled)
+                            $newPrinterPortParamaters.SNMPEnabled = $this.SNMPEnabled
+                        } # End If SNMPEnabled
+                        if($this.SNMPEnabled -eq $true){ 
+                            if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
+                                Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPCommunity",$this.SNMPCommunity,$printerPort.SNMPCommunity)
+                                $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                            } # End If SNMPCommunity
+                            if($this.SNMPIndex -ne $printerPort.SNMPIndex){
+                                Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPIndex",$this.SNMPIndex,$printerPort.SNMPIndex)
+                                $newPrinterPortParamaters.SNMPDevIndex = $this.SNMPIndex
+                            } # End If SNMPIndex
+                        } # End If SNMPEnabled True
+                        # If newPrinterPortParamaters has more items than just Name the port needs to be updated with new settings
+                        if($newPrinterPortParamaters.count -gt 1){
+                            Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $newPrinterPortParamaters -PutType UpdateOnly | Out-Null
+                        } # End If newPrinterPortParamaters.Count
                     } # End Default
                 } # End Switch $currentPortType
             } # End If not NewPrinterPort
