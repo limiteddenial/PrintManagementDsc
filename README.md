@@ -24,7 +24,7 @@ A full list of changes in each version can be found in the [change log](CHANGELO
 
 * **cPrintDriver**: Add or remove print drivers
 * **cPrintDriverSet**: Add or remove multiple print drivers from the same source file
-* [**cPrinter**](#cPrinter) Manages printers installed on a host
+* [**cPrinter**](#cprinter) Manages printers installed on a host
 
 ### cPrintDriver
 
