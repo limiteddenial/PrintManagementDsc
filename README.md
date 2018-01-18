@@ -1,10 +1,6 @@
 # cPrinterManagement
 
-The **cPrinterManagement** module contains the following resources:
-
-- **cPrintDriver**: Add or remove print drivers
-- **cPrintDriverSet**: Add or remove multiple print drivers from the same source file
-- **cPrinter**: Add pr remove printers
+The **cPrinterManagement** module contains DSC resources for deployment and configuration of printers. 
 
 ## Branches
 
@@ -20,46 +16,64 @@ This is the branch containing the latest release - no contributions should be ma
 
 This is the development branch to which contributions should be proposed by contributors as pull requests.
 
-## cPrintDriver
+## Change log
+
+A full list of changes in each version can be found in the [change log](CHANGELOG.md).
+
+## Resources
+
+* **cPrintDriver**: Add or remove print drivers
+* **cPrintDriverSet**: Add or remove multiple print drivers from the same source file
+* [**cPrinter**](#cPrinter) Manages printers installed on a host
+
+### cPrintDriver
 
 cPrintDriver resource has the following properties:
 
-- **Name**: The driver name
-- **Version**: The version of the driver
-- **Source**: Where the source .inf file is located
+* **Name**: The driver name
+* **Version**: The version of the driver
+* **Source**: Where the source .inf file is located
 
-### cPrintDriver Examples
+#### cPrintDriver Examples
 
-- [Add a printer driver](/Examples/Sample_cPrintDriver.ps1)
+* [Add a printer driver](/Examples/Sample_cPrintDriver.ps1)
 
-## cPrintDriverSet
+### cPrintDriverSet
 
 cPrintDriverSet resource has the following properties:
 
-- **Name**: A list of driver names
-- **Version**: The version of the driver
-- **Source**: Where the source .inf file is located
+* **Name**: A list of driver names
+* **Version**: The version of the driver
+* **Source**: Where the source .inf file is located
 
-### cPrintDriverSet Examples
+#### cPrintDriverSet Examples
 
-- [Add a printer driver set](/Examples/Sample_cPrintDriverSet.ps1)
+* [Add a printer driver set](/Examples/Sample_cPrintDriverSet.ps1)
 
-## cPrinter
+### cPrinter
 
-cPrinter resource has the following properties:
+Manages printers installed on a host.
 
-- **Name**: The desired printer name
-- **PortType**: *Possible values: ("TCPIP","Papercut","LPR")* - The desired printer port type
-- **PortName**: The desired printer port name
-- **Address**: The desired printer address
-- **DriverName**: The desired driver name to be used
-- **LprQueue**: The desired queue name used if PortType is LPR
-- **Shared**: *Default Value is $true* - Sets the desired shared state of the printer 
-- **SNMPEnabled**: Enables or disables SNMP on the printer port
-- **SNMPCommunityName**: *Default Value is "public"* - Sets the desired community name used for SNMP communication if SNMP is enabled. 
-- **SNMPIndex**: *Default Value is 1* - Sets the desired index used for SNMP communication if SNMP is enabled. 
-- **PermissionsSDDL**: The desired permissions of a printer
+#### Parameters for cPrinter:
 
-### cPrinter Examples
+* **`[String]` Name** _(Key)_: The desired name of the printer.
+* **`[String]` Ensure** _(Write)_: Specifies if the printer should exist or not.  { Present | Absent }.
+* **`[PortType]` PortType** _(Write)_: The desired type of printer port needed. 
+The defalut value is TCPIP. { *TCPIP* | Papercut | LPR }
+* **`[String]` PortName** _(Required)_: The desired port name.
+* **`[String]` Address** _(Required)_: The desired address of the printer.
+* **`[String]` DriverName** _(Required)_: The desired driver of the printer.
+* **`[String]` LprQueueName** _(Write)_: The desired LPR queue name. Used only if PortType is set to LPR.
+* **`[Boolean]` Shared** _(Write)_: The desired shared state of the printer. 
+The default value is $true.
+* **`[Boolean]` SNMPEnabled** _(Write)_: The disired state for SNMP enablement on the printer port 
+The defalut value is $true.
+* **`[String]` SNMPCommunity**: The desired SNMPCommunity used for SNMP communication, only set if SNMP is enabled on the port.
+The default value is _Public_.
+* **`[UInt32]` SNMPIndex** _(Write)_: The desired index used for SNMP communication, only set if SNMP is enabled on the port. 
+The default value is 1.
+* **`[String]` PermissionsSDDL** _(Write)_: The desired permissions of a printer
 
-- [Add a printer](/Examples/Sample_cPrinter.ps1)
+#### Examples cPrinter
+
+* [Add a printer](/Examples/Sample_cPrinter.ps1)
