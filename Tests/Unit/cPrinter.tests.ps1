@@ -495,11 +495,14 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Mock -CommandName Get-PrinterPort -MockWith {
                         [System.Collections.Hashtable]@{
                             Name = 'newPrinter'
+                            PrinterHostAddress = "test.local"
+                            SNMPENabled = $false
                         }
                     }
                     Mock -CommandName Add-PrinterPort -MockWith { }
                     Mock -CommandName Add-Printer -MockWith { }
                     Mock -CommandName Get-PrinterDriver -MockWith { return $true }
+                    Mock -CommandName Get-WmiObject -MockWith { }
                     Mock -CommandName Get-CimInstance -MockWith {
                         [System.Collections.Hashtable]@{
                             Protocol = 1 # Port Check for TCPIP
@@ -512,6 +515,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
                 }
                 it 'Add-PrinterPort should be called 1 time' {
                     Mock -CommandName Get-PrinterPort -MockWith { }
@@ -578,6 +582,8 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Mock -CommandName Get-PrinterPort -MockWith { 
                         [System.Collections.Hashtable]@{
                             Name = 'newPrinter'
+                            PrinterHostAddress = "test.local"
+                            SNMPENabled = $false
                         } 
                     }
                     Mock -CommandName Get-Printer -MockWith {
@@ -588,6 +594,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                             PortName = 'newPrinter'
                         } 
                     }
+                    Mock -CommandName Get-WmiObject -MockWith { }
                     Mock -CommandName Add-PrinterPort -MockWith { }
                     Mock -CommandName Add-Printer -MockWith { }
                     Mock -CommandName Set-Printer -MockWith { }
@@ -603,6 +610,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
                 }
             }
             context 'Ensure Absent' {
