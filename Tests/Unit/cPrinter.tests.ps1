@@ -1238,7 +1238,97 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                     Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
                 }
-            }
+                it 'Update LPR Port Address' {
+                    $cPrinterResource.PortType = 'LPR'
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            PrinterHostAddress = 'myBadAddress.local'
+                        }
+                    }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
+                            PortName = 'myPort'
+                        } 
+                    }
+                    Mock -CommandName Set-WmiInstance -MockWith { }
+                    Mock -CommandName Get-WmiObject -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = $cPrinterResource.PortName
+                            Protocol = 2 # LPR
+                            Description = $null
+                        }
+                    }
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Set-Printer -MockWith { }
+                    Mock -CommandName Get-CimInstance -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            Protocol = 2 # LPR
+                            Description = $null
+                        }
+                    } -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-WmiInstance -Times 1 -Exactly -Scope It
+                } # End It Update LPR Port Address
+                it 'Update LPR Port lprQueueName' {
+                    $cPrinterResource.PortType = 'LPR'
+                    $cPrinterResource.lprQueueName = 'myQueue'
+                    Mock -CommandName Get-PrinterPort -MockWith { 
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            PrinterHostAddress = 'printer.local'
+                            lprQueueName = 'myBadQueue'
+                        }
+                    }
+                    Mock -CommandName Get-Printer -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = 'myPrinter'
+                            DriverName = 'myDriver'
+                            Shared = [bool]::TrueString
+                            PortName = 'myPort'
+                        } 
+                    }
+                    Mock -CommandName Set-WmiInstance -MockWith { }
+                    Mock -CommandName Get-WmiObject -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = $cPrinterResource.PortName
+                            Protocol = 2 # LPR
+                            Description = $null
+                        }
+                    }
+                    Mock -CommandName Add-PrinterPort -MockWith { }
+                    Mock -CommandName Add-Printer -MockWith { }
+                    Mock -CommandName Set-Printer -MockWith { }
+                    Mock -CommandName Get-CimInstance -MockWith {
+                        [System.Collections.Hashtable]@{
+                            Name = $this.PortName
+                            Protocol = 2 # LPR
+                            Description = $null
+                        }
+                    } -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    $cPrinterResource.Set()
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $cPrinterResource.PortName)}
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-WmiInstance -Times 1 -Exactly -Scope It
+                } # End It Update LPR Port Address
+            } # End Context Update Port Settings
         } # End Describe Set Method
     } <#
 } finally {
