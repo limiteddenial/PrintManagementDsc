@@ -17,13 +17,11 @@ $TestEnvironment = Initialize-TestEnvironment `
 -DSCModuleName $Global:ModuleName `
 -DSCResourceName $Global:DscResourceName `
 -TestType Unit
-
+-ResourceType 'Class'
 #endregion HEADER
 
 # Begin Testing
 try {
-    Invoke-TestSetup
-
 #$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 #Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement.psd1') -Force
     #region Pester Tests
