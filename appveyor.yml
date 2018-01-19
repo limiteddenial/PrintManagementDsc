@@ -1,21 +1,20 @@
 #---------------------------------#
 #      environment configuration  #
 #---------------------------------#
-version: 2.0.0.{build}
+version: 2.0.0.0.alpha{build}
 install:
     #change git location for now
-    #- git clone https://github.com/PowerShell/DscResource.Tests
+    - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
         Install-Module -Name Pester -Repository PSGallery -Force
-
+        Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
+        Invoke-AppveyorInstallTask
 
 #---------------------------------#
 #     services configuration      #
 #---------------------------------#
 
-services:
-  - spooler
 
 #---------------------------------#
 #      build configuration        #
@@ -29,12 +28,13 @@ build: false
 
 test_script:
     - ps: |
-        $testResultsFile = ".\TestsResults.xml"
-        $res = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
-        (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
-        if ($res.FailedCount -gt 0) { 
-            throw "$($res.FailedCount) tests failed."
-        }
+        #$testResultsFile = ".\TestsResults.xml"
+        #$res = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
+        #(New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
+        #if ($res.FailedCount -gt 0) { 
+        #    throw "$($res.FailedCount) tests failed."
+        #}
+        Invoke-AppveyorTestScriptTask -CodeCoverage - CodeCovIo
 #---------------------------------#
 #      deployment configuration   #
 #---------------------------------#
