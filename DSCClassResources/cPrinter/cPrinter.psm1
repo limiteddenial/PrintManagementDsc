@@ -67,7 +67,8 @@ class cPrinter {
         if($this.Ensure -eq [Ensure]::Present){
             # Creating variables to determine if new a new printer or printerPort was just created. 
             # Doing this to bypass excess setting checks as the settings would already set correctly
-            [bool]$newPrinter, [bool]$newPrinterPort = $false
+            [bool]$newPrinter = $false
+            [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
             if($null -eq $printerPort){
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType,$this.PortNamee)
