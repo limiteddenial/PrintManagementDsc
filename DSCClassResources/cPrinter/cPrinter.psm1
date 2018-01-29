@@ -48,7 +48,7 @@ class cPrinter {
     hidden $Messages = ""
 
     cPrinter(){
-        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH)))
+        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH))))
     }
 
     [void] Set(){

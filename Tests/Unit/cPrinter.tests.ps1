@@ -16,16 +16,15 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\
 $TestEnvironment = Initialize-TestEnvironment `
 -DSCModuleName $Global:ModuleName `
 -DSCResourceName $Global:DscResourceName `
--TestType Unit
+-TestType Unit `
 -ResourceType 'Class'
 #endregion HEADER
 
 # Begin Testing
 try {
-#$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-#Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement.psd1') -Force
+
     #region Pester Tests
-    InModuleScope -ModuleName cPrinter {
+    InModuleScope -ModuleName $Global:DscResourceName  {
         Describe 'Test Method'{          
             Context 'Type Test' { 
                 $cPrinterResource = [cPrinter]::new()
