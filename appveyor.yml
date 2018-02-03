@@ -6,8 +6,6 @@ install:
     #change git location for now
     - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
-        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-        Install-Module -Name Pester -Repository PSGallery -Force
         Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
         Invoke-AppveyorInstallTask
 

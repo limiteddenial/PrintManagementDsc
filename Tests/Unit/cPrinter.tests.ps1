@@ -16,8 +16,7 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\
 $TestEnvironment = Initialize-TestEnvironment `
 -DSCModuleName $Global:ModuleName `
 -DSCResourceName $Global:DscResourceName `
--TestType Unit `
--ResourceType 'Class'
+-TestType Unit
 #endregion HEADER
 
 # Begin Testing
