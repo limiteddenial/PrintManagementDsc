@@ -48,7 +48,7 @@ class cPrinter {
     hidden $Messages = ""
 
     cPrinter(){
-        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH)))
+        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH))))
     }
 
     [void] Set(){
@@ -67,7 +67,8 @@ class cPrinter {
         if($this.Ensure -eq [Ensure]::Present){
             # Creating variables to determine if new a new printer or printerPort was just created. 
             # Doing this to bypass excess setting checks as the settings would already set correctly
-            [bool]$newPrinter, [bool]$newPrinterPort = $false
+            [bool]$newPrinter = $false
+            [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
             if($null -eq $printerPort){
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType,$this.PortNamee)
@@ -466,7 +467,10 @@ class cPrinter {
         # Using the 'PaperCut TCP$([char]0x002f)IP Port' does not work. So we are just using reg.exe to add the key
         # Wrapping the Reg.exe commands in invoke-command to be able to create tests
         Invoke-Command -ScriptBlock { 
-            param($PortName,$Address)
+            param(
+                [Parameter()]$PortName,
+                [Parameter()]$Address
+            )
             $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
             & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f | Out-Null
             # Sets the port number to 9100
@@ -496,7 +500,7 @@ class cPrinter {
         # We required removing the exising port so a temp port needs to be created
         # We do a while loop to make sure the port name doesn't already exist
         $tempPortName = -join (1..9 | Get-Random -Count 5)
-        while((Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) -ne $null){
+        while($null -ne (Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) ){
             # We need to generate a new portname and then restart the 
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }

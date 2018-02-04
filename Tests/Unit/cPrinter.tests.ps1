@@ -4,7 +4,7 @@ $Global:DscResourceName = 'cPrinter'
 #region HEADER
 
 # Unit Test Template Version: 1.2.0
-<#$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
      (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
 {
@@ -17,24 +17,13 @@ $TestEnvironment = Initialize-TestEnvironment `
 -DSCModuleName $Global:ModuleName `
 -DSCResourceName $Global:DscResourceName `
 -TestType Unit
-
 #endregion HEADER
-
-function Invoke-TestSetup {
-}
-
-function Invoke-TestCleanup {
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
-}
 
 # Begin Testing
 try {
-    Invoke-TestSetup
-#>
-$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement.psd1') -Force
+
     #region Pester Tests
-    InModuleScope -ModuleName cPrinter {
+    InModuleScope -ModuleName $Global:DscResourceName  {
         Describe 'Test Method'{          
             Context 'Type Test' { 
                 $cPrinterResource = [cPrinter]::new()
@@ -1485,9 +1474,9 @@ Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'cPrinterManagement
                 } # End It Update LPR/TCPIP Port SNMPIndex
             } # End Context Update Port Settings
         } # End Describe Set Method
-    } <#
+    } 
 } finally {
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion
-}#>
+}
