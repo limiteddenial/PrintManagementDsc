@@ -467,7 +467,10 @@ class cPrinter {
         # Using the 'PaperCut TCP$([char]0x002f)IP Port' does not work. So we are just using reg.exe to add the key
         # Wrapping the Reg.exe commands in invoke-command to be able to create tests
         Invoke-Command -ScriptBlock { 
-            param($PortName,$Address)
+            param(
+                [Parameter()]$PortName,
+                [Parameter()]$Address
+            )
             $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
             & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f | Out-Null
             # Sets the port number to 9100
@@ -497,7 +500,7 @@ class cPrinter {
         # We required removing the exising port so a temp port needs to be created
         # We do a while loop to make sure the port name doesn't already exist
         $tempPortName = -join (1..9 | Get-Random -Count 5)
-        while((Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) -ne $null){
+        while($null -ne (Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) ){
             # We need to generate a new portname and then restart the 
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }
