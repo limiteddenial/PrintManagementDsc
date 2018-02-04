@@ -1,163 +1,75 @@
-function Get-TargetResource {
-    [OutputType([System.Collections.Hashtable])]
-    param (
-        [Parameter(Mandatory=$true)]
-        [System.String]
-        $Name,
-        
-        [Parameter(Mandatory=$false)]
-        [System.String]
-        [ValidateSet("Present","Absent")]
-        $Ensure = "Present",   
-
-        [parameter(Mandatory = $false)]
-        [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
-
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
-
-    )
-    # Get the list of installed printer drivers.
-    $InstalledPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction SilentlyContinue
-
-    if($InstalledPrintDriver){
-        #The driver version is converted to an int64 in the PrintDriver looked so we need to query the windows driver
-        $installedDriver = Get-WindowsDriver -Online -Verbose:$false -Driver $InstalledPrintDriver.InfPath
-        
-        return @{
-            Name = $Name
-            Ensure = "Present"
-            Source = $InstalledPrintDriver.InfPath
-            Version = $installedDriver.Version | Get-Unique
-        }
-    } else {
-        return @{
-            Name = $Name
-            Ensure = "Absent"
-        }
+enum Ensure 
+{
+    Absent
+    Present
+}
+[DscResource()]
+class cPrintDriver {
+    [DscProperty(Mandatory)]
+    [Ensure] $Ensure
     
+    [DscProperty(Mandatory)] 
+    [System.String[]]$Name
+
+    [DscProperty(Key)]
+    [System.String] $Source
+
+    [DscProperty(Mandatory)]
+    [System.Version] $Version
+
+    [DscProperty()]
+    [System.Boolean] $Purge = $false
+    
+    hidden $Messages = ""
+    
+    cPrintDriver(){
+        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH))))
     }
-}
-function Set-TargetResource{
-    param (
-        [Parameter(Mandatory=$true)]
-        [System.String]
-        $Name,
-        
-        [Parameter(Mandatory=$false)]
-        [System.String]
-        [ValidateSet("Present","Absent")]
-        $Ensure = "Present",   
+    [void] Set(){
 
-        [parameter(Mandatory = $false)]
-        [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
-
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
-    )
-
-    $currentValues = Get-TargetResource @PSBoundParameters
-
-    switch ($Ensure) {
-        'Absent' {
-            if($currentValues.Ensure -eq 'Present'){
-                Remove-PrinterDriver -Name $Name
-            }
-        }
-        'Present' {
-            if($currentValues.Ensure -eq 'Absent'-or $currentValues.Version -ne $Version){
-                # We are checking the drivers in the DriverStore to see if the drivers already exist.
-                $driverINF = Get-DriverStoreINF -Name $Name -Version $Version
-                if($DriverINF){
-                    Add-PrinterDriver -InfPath $DriverINF -Name $Name
-                } else {
-                    # The print driver wasn't found in the existing drivers in the DriverStore. We need to install it
-                    C:\Windows\system32\pnputil.exe /a "$Source"
-                    $driverINF = Get-DriverStoreINF -Name $Name -Version $Version
-                    if($DriverINF){
-                        Add-PrinterDriver -InfPath $DriverINF -Name $Name
-                    }
-                    
-                }
-            }
-        }
-    }
-}
-function Test-TargetResource{
-    [OutputType([System.Boolean])]
-    param (
-        [Parameter(Mandatory=$true)]
-        [System.String]
-        $Name,
-        
-        [Parameter(Mandatory=$false)]
-        [System.String]
-        [ValidateSet("Present","Absent")]
-        $Ensure = "Present",   
-
-        [parameter(Mandatory = $false)]
-        [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
-
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
-    )
-
-    $currentValues = Get-TargetResource @PSBoundParameters
-
-    switch ($Ensure)
-    {
-        'Absent'
-        {
-            if ( $currentValues.Ensure -eq 'Absent' ) {
-                return $true 
-            } else {
-                Write-Verbose -Message "Ensure does not match desired state. Current value: $($currentValues.Ensure) - Desired Value: $Ensure"
-                return $false 
-            }
-        }
-        'Present' {
-            if ( $currentValues.Ensure -eq 'Absent' ) {
-                Write-Verbose -Message "Ensure does not match desired state. Current value: $($currentValues.Ensure) - Desired Value: $Ensure"
-                return $false
+    } # End Set()
+    [bool] Test(){
+        return $false
+    } # End Test()
+    [cPrintDriver] Get(){
+        $ReturnObject = [cPrintDriver]::new()
+        Foreach ($name in $this.Name){
+            try 
+            {
+                $InstalledPrintDriver = Get-PrinterDriver -Name $this.Name -ErrorAction Stop
             } 
-            if ($Version -ne $currentValues.version) { 
-                Write-Verbose -Message "Version does not match desired state. Current value: $($currentValues.version) - Desired Value: $version"
-                return $false 
-            }
-            return $true
-        }
-    }
-}
-#helper Functions
-function Get-DriverStoreINF {
-    [OutputType([System.String])]
-    param(
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version,
-        
-        [Parameter(Mandatory=$true)]
-        [System.String]
-        $Name
-    )
-        
-    $InstalledDriverPacks = Get-WindowsDriver -Online -Verbose:$false | Where-Object {$_.Version -eq $Version}
-    foreach ($InstalledDriverPack in $InstalledDriverPacks){
-        $DriverExistingPack = Get-WindowsDriver -Online -Driver $InstalledDriverPack.OriginalFileName -Verbose:$false | Where-Object {$_.HardwareDescription -eq $Name}
-        if($DriverExistingPack){
-            Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
-            return $InstalledDriverPack.OriginalFileName
-        }
-    }
-}
-
-Export-ModuleMember -Function *-TargetResource
+            catch 
+            {
+                # Print driver isn't installed, need to look in the driver store to see if it is there. Only checking if the $Pruge is set to true
+                $ReturnObject.Ensure = [Ensure]::Absent
+                if($this.Purge -eq $true)
+                { 
+                    $stagedDriver = $this.InstalledDriver()
+                    if(-not [string]::IsNullOrEmpty($stagedDriver))
+                    {
+                        $ReturnObject.Ensure = [Ensure]::Present
+                    } # End If StagedDriver
+                } # End If this.Purge
+                if($ReturnObject.Ensure -eq [Ensure]::Absent)
+                {
+                    return $ReturnObject
+                } # End If ReturnObject.Enusre
+            
+            } # End try/catch Get-PrinterDriver
+        } # End Foreach Name
+        return $ReturnObject
+    } # End Get()
+    hidden [string] InstalledDriver() {
+        # Since we don't have an INF file to look at. We need 
+        $InstalledDriverPacks = Get-WindowsDriver -Online -Verbose:$false | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
+        foreach ($InstalledDriverPack in $InstalledDriverPacks) {
+            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$_.HardwareDescription -eq $this.Name}
+            if($DriverExists)
+            {
+                Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
+                return $InstalledDriverPack.Driver
+            } # End if DriverExists
+        } # End Foreach
+        return $null
+    } # End InstalledDriver()
+} # End Class cPrintDriver
