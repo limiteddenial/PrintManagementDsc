@@ -2,9 +2,9 @@
 [ClassVersion("1.0.0.0"), FriendlyName("cPrintDriver")]
 class cPrintDriver : OMI_BaseResource
 {
-    [Key, Description("The name of the driver")] String Name;
-    [Write, ValueMap{"Absent","Present"}, Values{"Absent","Present"}] String Ensure;
-    [Required, Description("The driver version")] String Version;
-    [Write, Description("The fqdn of the printer")] String Source;
+	[Key, Description("The name of the driver")] String Name;
+	[Write, ValueMap{"Absent","Present"}, Values{"Absent","Present"}] String Ensure;
+	[Required, Description("The driver version")] String Version;
+	[Write, Description("The fqdn of the printer")] String Source;
 };
 

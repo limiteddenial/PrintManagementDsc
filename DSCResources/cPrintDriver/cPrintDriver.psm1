@@ -10,14 +10,14 @@ function Get-TargetResource {
         [ValidateSet("Present","Absent")]
         $Ensure = "Present",   
 
-        [parameter(Mandatory = $false)]
+		[parameter(Mandatory = $false)]
         [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
+		[System.String]
+		$Source,
 
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
+		[parameter(Mandatory = $true)]
+		[System.String]
+		$Version
 
     )
     # Get the list of installed printer drivers.
@@ -52,14 +52,14 @@ function Set-TargetResource{
         [ValidateSet("Present","Absent")]
         $Ensure = "Present",   
 
-        [parameter(Mandatory = $false)]
+		[parameter(Mandatory = $false)]
         [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
+		[System.String]
+		$Source,
 
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
+		[parameter(Mandatory = $true)]
+		[System.String]
+		$Version
     )
 
     $currentValues = Get-TargetResource @PSBoundParameters
@@ -101,14 +101,14 @@ function Test-TargetResource{
         [ValidateSet("Present","Absent")]
         $Ensure = "Present",   
 
-        [parameter(Mandatory = $false)]
+		[parameter(Mandatory = $false)]
         [ValidateScript({Test-Path $_ })] 
-        [System.String]
-        $Source,
+		[System.String]
+		$Source,
 
-        [parameter(Mandatory = $true)]
-        [System.String]
-        $Version
+		[parameter(Mandatory = $true)]
+		[System.String]
+		$Version
     )
 
     $currentValues = Get-TargetResource @PSBoundParameters
@@ -142,14 +142,14 @@ function Get-DriverStoreINF {
     [OutputType([System.String])]
     param(
         [parameter(Mandatory = $true)]
-        [System.String]
-        $Version,
+		[System.String]
+		$Version,
         
         [Parameter(Mandatory=$true)]
         [System.String]
         $Name
     )
-        
+		
     $InstalledDriverPacks = Get-WindowsDriver -Online -Verbose:$false | Where-Object {$_.Version -eq $Version}
     foreach ($InstalledDriverPack in $InstalledDriverPacks){
         $DriverExistingPack = Get-WindowsDriver -Online -Driver $InstalledDriverPack.OriginalFileName -Verbose:$false | Where-Object {$_.HardwareDescription -eq $Name}
