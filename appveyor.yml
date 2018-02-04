@@ -1,0 +1,34 @@
+#---------------------------------#
+#      environment configuration  #
+#---------------------------------#
+version: 2.0.0.{build}
+install:
+    #change git location for now
+    - git clone https://github.com/PowerShell/DscResource.Tests
+    - ps: |
+        Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
+        Invoke-AppveyorInstallTask
+
+#---------------------------------#
+#     services configuration      #
+#---------------------------------#
+
+
+#---------------------------------#
+#      build configuration        #
+#---------------------------------#
+
+build: false
+
+#---------------------------------#
+#      test configuration         #
+#---------------------------------#
+
+test_script:
+    - ps: |
+        Invoke-AppveyorTestScriptTask -CodeCoverage -CodeCovIo
+#---------------------------------#
+#      deployment configuration   #
+#---------------------------------#
+
+# scripts to run before deployment
