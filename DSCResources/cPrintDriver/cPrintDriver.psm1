@@ -56,15 +56,8 @@ class cPrintDriver {
                     {
                         $ReturnObject.Ensure = [Ensure]::Present
                     } # End If StagedDriver
-                    else 
-                    {
-                        return $ReturnObject
-                    } # End else
                 } # End If this.Purge
-                else
-                {
-                    return $ReturnObject
-                } # End else
+                return $ReturnObject
             } # End catch
             $ReturnObject.Ensure = [Ensure]::Present
             $windowsDriverParam = @{
@@ -76,7 +69,7 @@ class cPrintDriver {
             [System.Collections.ArrayList]$tmpArrayList = $ReturnObject.Name
             $tmpArrayList.Add($Name)
             $ReturnObject.Name = $tmpArrayList | Sort-Object
-            #Remove-Variable -Name tmpArrayList
+            Remove-Variable -Name tmpArrayList
         } # End Foreach Name
         return $ReturnObject
     } # End Get()
