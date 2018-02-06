@@ -36,7 +36,6 @@ class cPrintDriver {
         {
             Foreach ($Name in $this.Name)
             {
-                Write-Warning $Name
                 try
                 {
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
@@ -44,6 +43,7 @@ class cPrintDriver {
                 catch 
                 {
                     $installedPrintDriver = $null
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredStateMultipleObjects -f "Ensure",$Name,'Absent',$this.Ensure)
                     return $false
                 } # End catch
                 $windowsDriverParam = @{
@@ -53,10 +53,9 @@ class cPrintDriver {
                 $currentVersion = (Get-WindowsDriver @windowsDriverParam).Version | Get-Unique
                 if($currentVersion -ne $this.Version)
                 {
-                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Version",$currentVersion,$this.Ensure)
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredStateMultipleObjects -f "Version",$Name,$currentVersion,$this.Version)
                     return $false
                 }
-
             } # End Foreach Name
         } # End if Ensure Present
         else 
