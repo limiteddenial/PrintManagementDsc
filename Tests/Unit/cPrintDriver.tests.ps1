@@ -296,7 +296,44 @@ try {
                 } # End it Present if print driver exists
             } # End Context Get Ensure Present
         } # End Describe Get Method
-        Describe 'InstalledDriver method' {
+        Describe 'Test Method' {
+            BeforeEach {
+                Mock -CommandName Get-PrinterDriver
+                Mock -CommandName Get-WindowsDriver
+            } # End BeforeEach
+            Context 'Type Test' {
+                it 'Test should return bool object' {
+                    $testParms = [cPrintDriver]$testPresentParams
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName } -ParameterFilter {$name -eq 'myName'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+                    $testParms.test() | Should -BeOfType bool
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName"}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+
+                } # End it test should return bool object
+            } # End Context Type Test
+            Context 'Test Ensure Present' {
+                it 'Test should return true with single driver' {
+                    $testParms = [cPrintDriver]$testPresentParams
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName } -ParameterFilter {$name -eq 'myName'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+                    $testParms.test() | Should -BeExactly $true
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName"}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+                } # End it test should return true for single driver
+                it 'Test should return true with multiple drivers' {
+                    $testParms = [cPrintDriver]$testMultiplePresentParams
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName1 } -ParameterFilter {$name -eq 'myName1'}
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName2 } -ParameterFilter {$name -eq 'myName2'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyNameMultiple } -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+                    $testParms.test() | Should -BeExactly $true
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName1"}
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName2"}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 2 -Exactly -Scope It -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
+                } # End it test should return true for multiple drivers
+            } # End Context Type Test
+        } # End Describe Test Method
+        Describe 'InstalledDriver Method' {
             it 'Should return null' {
                 $absentParms = [cPrintDriver]$testPresentParams
                 Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithoutPrinters }
