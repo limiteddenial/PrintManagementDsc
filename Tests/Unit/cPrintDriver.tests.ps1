@@ -256,6 +256,16 @@ try {
                     Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName"}
                     Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It
                 } # End it driver Absent
+                it 'Should return Present if driver is not in print driver and exits the driver store when the purge is set to true' {
+                    $absentParms = [cPrintDriver]$testAbsentPurgeParams
+                    Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter {$name -eq "myName"}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithPrinters } -ParameterFilter {$Online -and $All }
+                    $absentParms.Get().Ensure | Should -be 'Present'
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName"}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $All}
+                } # End it purge driver still exists
             } # End Context Get Ensure Absent
             context 'Get Ensure Present' {
                 it 'Should return Present if print driver exists' {
