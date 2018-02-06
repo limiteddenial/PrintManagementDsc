@@ -111,13 +111,13 @@ try {
             }
             [PSCustomObject]@{
                 Driver = 'oem10.inf'
-                OriginalFileName = 'C:\WINDOWS\System32\DriverStore\FileRepository\myName1\myName1.inf'
+                OriginalFileName = 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
                 Inbox = 'False'
                 ClassName = 'Printer'
                 BootCritical = 'False'
                 ProviderName = 'Mock'
                 Date = '10/27/2017 12:00:00 AM'
-                Version = '23.21.13.8813'
+                Version = '1.2.3.4'
             }
             [PSCustomObject]@{
                 Driver = 'oem11.inf'
@@ -125,11 +125,30 @@ try {
                 Inbox = 'False'
                 ClassName = 'Printer'
                 BootCritical = 'False'
-                ProviderName = 'Movk'
+                ProviderName = 'Mock'
                 Date = '10/27/2017 12:00:00 AM'
                 Version = '2.1.3.13'
             }
         )
+        $windowsPrintDrivermyName = @{
+            Driver = 'oem10.inf'
+            OriginalFileName = 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
+            Inbox = $False
+            ClassName = 'Printer'
+            ClassDescription = 'Printers'
+            ClassGuid = '{4D36E979-E325-11CE-BFC1-08002BE10318}'
+            BootCritical = $False
+            ProviderName = 'Mock'
+            Date = '10/27/2017 12:00:00 AM'
+            Version = '1.2.3.4'
+            ManufacturerName = '"Mock'
+            HardwareDescription = 'myName'
+            Architecture = 'x64'
+            HardwareId = 'wsdprint\myName'
+            ServiceName = ''
+            CompatibleIds = 'myName'
+            ExcludeIds = ''
+        }
 
         # End Region Get-WindowsDriver
         Describe 'Get Method'{
@@ -170,13 +189,32 @@ try {
                 } # End it driver Absent
                 
             } # End Context Get Ensure Absent
-            context 'Get Ensure Present' {
+            context 'InstalledDriver function' {
+                it 'Should return null' {
+                    $absentParms = [cPrintDriver]$testPresentParams
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithoutPrinters }
+                    $absentParms.InstalledDriver() | Should be ''
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It
+                }
+                it 'Should return oem10.inf' {
+                    $absentParms = [cPrintDriver]$testPresentParams
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithPrinters }  -ParameterFilter {$Online -and $All }
+                    
+                    $absentParms.InstalledDriver() | Should be 'oem10.inf'
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $All}
+                    
+                }
+            }
+            <#context 'Get Ensure Present' {
                 it 'Should return Present if print driver exists' {
                     $presentParams = [cPrintDriver]$testPresentParams
                     Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter {$name -eq "myName"}
                     Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithoutPrinters }  
                 }
             } # End Context Get Ensure Present
+            #>
         } # End Describe Get Method
     } # End InModuleScope
 } finally {
