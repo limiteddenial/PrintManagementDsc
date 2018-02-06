@@ -32,7 +32,38 @@ class cPrintDriver {
     } # End Set()
     [bool] Test()
     {
-        return $false
+        if($this.Ensure -eq [Ensure]::Present)
+        {
+            Foreach ($Name in $this.Name)
+            {
+                Write-Warning $Name
+                try
+                {
+                    $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
+                } # End Try
+                catch 
+                {
+                    $installedPrintDriver = $null
+                    return $false
+                } # End catch
+                $windowsDriverParam = @{
+                    Driver = $installedPrintDriver.InfPath
+                    Online = $true
+                }
+                $currentVersion = (Get-WindowsDriver @windowsDriverParam).Version | Get-Unique
+                if($currentVersion -ne $this.Version)
+                {
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Version",$currentVersion,$this.Ensure)
+                    return $false
+                }
+
+            } # End Foreach Name
+        } # End if Ensure Present
+        else 
+        {
+            
+        } # End else
+        return $true
     } # End Test()
     [cPrintDriver] Get()
     {
@@ -77,6 +108,7 @@ class cPrintDriver {
     {
         # Since we don't have an INF file to look at. We need 
         $InstalledDriverPacks = Get-WindowsDriver -Online -All | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
+        
         foreach ($InstalledDriverPack in $InstalledDriverPacks) 
         {   
             $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver | Where-Object {$_.HardwareDescription -eq $this.Name}
