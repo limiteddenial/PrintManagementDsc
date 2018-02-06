@@ -37,14 +37,16 @@ class cPrintDriver {
     [cPrintDriver] Get()
     {
         $ReturnObject = [cPrintDriver]::new()
-        Foreach ($name in $this.Name)
+        $ReturnObject.Name = @()
+        Foreach ($Name in $this.Name)
         {
             try
             {
-                $installedPrintDriver = Get-PrinterDriver -Name $this.Name -ErrorAction Stop
+                $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
             } # End Try
             catch
             {
+                $installedPrintDriver = $null
                 # Print driver isn't installed, need to look in the driver store to see if it is there. Only checking if the $Pruge is set to true
                 $ReturnObject.Ensure = [Ensure]::Absent
                 if($this.Purge -eq $true)
@@ -54,12 +56,27 @@ class cPrintDriver {
                     {
                         $ReturnObject.Ensure = [Ensure]::Present
                     } # End If StagedDriver
+                    else 
+                    {
+                        return $ReturnObject
+                    } # End else
                 } # End If this.Purge
-                if($ReturnObject.Ensure -eq [Ensure]::Absent)
+                else
                 {
                     return $ReturnObject
-                } # End If ReturnObject.Enusre
-            } # End catch      
+                } # End else
+            } # End catch
+            $ReturnObject.Ensure = [Ensure]::Present
+            $windowsDriverParam = @{
+                Driver = $installedPrintDriver.InfPath
+                Online = $true
+            }
+            $ReturnObject.Source = $installedPrintDriver.InfPath
+            $ReturnObject.Version = (Get-WindowsDriver @windowsDriverParam).Version | Get-Unique
+            [System.Collections.ArrayList]$tmpArrayList = $ReturnObject.Name
+            $tmpArrayList.Add($Name)
+            $ReturnObject.Name = $tmpArrayList | Sort-Object
+            #Remove-Variable -Name tmpArrayList
         } # End Foreach Name
         return $ReturnObject
     } # End Get()
