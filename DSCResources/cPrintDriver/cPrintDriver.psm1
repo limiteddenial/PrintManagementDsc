@@ -60,7 +60,30 @@ class cPrintDriver {
         } # End if Ensure Present
         else 
         {
-            
+            Foreach ($Name in $this.Name)
+            {
+                try 
+                {
+                    $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
+                } # End try
+                catch 
+                {
+                    $installedPrintDriver = $null
+                } # End catch
+                if($installedPrintDriver)
+                {
+                    Write-Verbose -Message  ($this.Messages.NotInDesiredStateMultipleObjects -f "Ensure",$Name,'Present',$this.Ensure)
+                    return $false
+                } # End if installedPrintDriver
+                if($this.Purge -eq $true)
+                {
+                    $stagedDriver = $this.InstalledDriver()
+                    if(-not [string]::IsNullOrEmpty($stagedDriver))
+                    {
+                        return $false
+                    } # End If StagedDriver
+                } # End If Purge
+            } # End foreach Name
         } # End else
         return $true
     } # End Test()
