@@ -28,7 +28,41 @@ class cPrintDriver {
     }
     [void] Set()
     {
-
+        if($this.Ensure -eq [Ensure]::Present)
+        {
+            
+        }
+        else {
+            Foreach ($Name in $this.Name)
+            {
+                try
+                {
+                    $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
+                } # End Try
+                catch 
+                {
+                    $installedPrintDriver = $null
+                } # End catch
+                if($null -ne $installedPrintDriver)
+                {
+                    Remove-PrinterDriver -Name $Name
+                } # End if installedPrintDriver
+            } # End foreach Name
+            if($this.Purge -eq $true)
+                {
+                    $stagedDriver = $this.InstalledDriver()
+                    if(-not [string]::IsNullOrEmpty($stagedDriver))
+                    {
+                        Invoke-Command -ScriptBlock { 
+                            param(
+                                [Parameter()]$Driver
+                            )
+                            $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
+                            & "$system32Path\pnputil.exe" /delete-driver "$Driver" | Out-Null
+                        } -ArgumentList ($stagedDriver)
+                    } # End If StagedDriver
+                } # End if Purge
+        } # End Else Ensure
     } # End Set()
     [bool] Test()
     {
