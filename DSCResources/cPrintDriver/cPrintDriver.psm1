@@ -167,7 +167,7 @@ class cPrintDriver {
         
         foreach ($InstalledDriverPack in $InstalledDriverPacks) 
         {   
-            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver | Where-Object {$_.HardwareDescription -eq $this.Name}
+            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver | Where-Object {$this.Name -contains $_.HardwareDescription}
             if($DriverExists)
             {
                 Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
