@@ -75,6 +75,22 @@ try {
         }
         $fakemyName2WrongInf = $fakemyName2.clone()
         $fakemyName2WrongInf.InfPath = 'C:\WINDOWS\System32\DriverStore\FileRepository\myNameWrong\myNameWrong.inf'
+        $fakePrintDriversWithSameINF =  @(
+            [PSCustomObject]@{
+                Name = "myName1"
+                PrinterEnvironment = "Windows x64"
+                MajorVersion = 3
+                Manufacturer = "Mock"
+                InfPath = 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
+            }
+            [PSCustomObject]@{
+                Name = "myName2"
+                PrinterEnvironment = "Windows x64"
+                MajorVersion = 3
+                Manufacturer = "Mock"
+                InfPath = 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
+            }
+        )
         # End Region Get-PrintDriver
         # Region Get-WindowsDriver
         $fakeWindowsDriversWithoutPrinters =  @(
@@ -538,6 +554,23 @@ try {
                     Assert-MockCalled -CommandName Remove-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName2"}
                     Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
                 } # End it Set should not find print driver
+                it 'Set should find print drivers and staged driver but not removed staged driver due to driver conflicts' {
+                    $setParms = [cPrintDriver]$testMultipleAbsentPurgeParams
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakePrintDriversWithSameINF }
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName1 } -ParameterFilter {$name -eq 'myName1'}
+                    Mock -CommandName Get-PrinterDriver -MockWith { return $fakemyName2 } -ParameterFilter {$name -eq 'myName2'}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithPrinters } -ParameterFilter {$Online -and $All}
+                    Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyNameMultiple } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    $setParms.set()
+                    
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $All}
+                    Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName1"}
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName2"}
+                    Assert-MockCalled -CommandName Remove-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName1"}
+                    Assert-MockCalled -CommandName Remove-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter {$name -eq "myName2"}
+                    Assert-MockCalled -CommandName Invoke-Command -Times 0 -Exactly -Scope It
+                } # End it Set should find print drivers and staged driver but not removed staged driver due to driver conflicts
             } # End Set Ensure Absent
         } # End Describe Set Method
         Describe 'InstalledDriver Method' {
@@ -547,12 +580,12 @@ try {
                 $absentParms.InstalledDriver() | Should be ''
                 Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It
             }
-            it 'Should return oem10.inf' {
+            it 'Should return INF path' {
                 $absentParms = [cPrintDriver]$testPresentParams
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
                 Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithPrinters }  -ParameterFilter {$Online -and $All }
 
-                $absentParms.InstalledDriver() | Should be 'oem10.inf'
+                $absentParms.InstalledDriver() | Should be 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
                 Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
                 Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $All}
             }
