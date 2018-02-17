@@ -8,4 +8,6 @@ ConvertFrom-StringData @'
     PrinterNoDriver=Driver {0} does not exist. Printer {1} cannot be added
     SourceNotFound=Source {0} does not exist
     UpdatedDesiredState={0} will be updated to match desired state. New value: {1} - Old Value: {2}
+    CheckingForRemovalConflicts=Verifying that there are no drivers that are adding using INF of {0}
+    FoundConflicts={0} print drivers are using {1}. Driver will not be removed til all conflicts are resolved
 '@
