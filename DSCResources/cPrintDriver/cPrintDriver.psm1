@@ -61,14 +61,13 @@ class cPrintDriver {
                         Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver)
                     } # End if driverConflicts
                     else {
-                        $addDriverScriptBlock = {
+                        Invoke-Command -ScriptBlock {
                             param(
                                 [Parameter()]$Driver
                             )
                             $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
                             & "$system32Path\pnputil.exe" /delete-driver "$Driver" | Out-Null
-                        } # End addDriverScriptBlock
-                        Invoke-Command -ScriptBlock $addDriverScriptBlock -ArgumentList ($stagedDriver)
+                        } -ArgumentList ($stagedDriver)
                     } # End else driverConflicts
                 } # End If StagedDriver
             } # End if Purge
