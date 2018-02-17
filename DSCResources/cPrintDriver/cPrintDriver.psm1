@@ -32,7 +32,8 @@ class cPrintDriver {
         {
             
         }
-        else {
+        else 
+        {
             Foreach ($Name in $this.Name)
             {
                 try
@@ -49,19 +50,28 @@ class cPrintDriver {
                 } # End if installedPrintDriver
             } # End foreach Name
             if($this.Purge -eq $true)
+            {
+                $stagedDriver = $this.InstalledDriver()
+                if(-not [string]::IsNullOrEmpty($stagedDriver))
                 {
-                    $stagedDriver = $this.InstalledDriver()
-                    if(-not [string]::IsNullOrEmpty($stagedDriver))
+                    Write-Verbose -Message ($this.Messages.CheckingForRemovalConflicts -f $stagedDriver)
+                    $driverConflicts = Get-PrinterDriver | Where-Object InfPath -eq $stagedDriver
+                    if([bool]$driverConflicts)
                     {
-                        Invoke-Command -ScriptBlock { 
+                        Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver)
+                    } # End if driverConflicts
+                    else {
+                        $addDriverScriptBlock = {
                             param(
                                 [Parameter()]$Driver
                             )
                             $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
                             & "$system32Path\pnputil.exe" /delete-driver "$Driver" | Out-Null
-                        } -ArgumentList ($stagedDriver)
-                    } # End If StagedDriver
-                } # End if Purge
+                        } # End addDriverScriptBlock
+                        Invoke-Command -ScriptBlock $addDriverScriptBlock -ArgumentList ($stagedDriver)
+                    } # End else driverConflicts
+                } # End If StagedDriver
+            } # End if Purge
         } # End Else Ensure
     } # End Set()
     [bool] Test()
@@ -171,7 +181,7 @@ class cPrintDriver {
             if($DriverExists)
             {
                 Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
-                return $InstalledDriverPack.Driver
+                return $InstalledDriverPack.OriginalFileName
             } # End if DriverExists
         } # End Foreach
         return $null
