@@ -256,6 +256,10 @@ try {
         )
 
         # End Region Get-WindowsDriver
+        $windir = @{
+            Name = 'windir'
+            Value = 'C:\WINDOWS'
+        }
         Describe 'Get Method'{
             BeforeEach {
                 Mock -CommandName Get-PrinterDriver
@@ -462,6 +466,7 @@ try {
         } # End Describe Test Method
         Describe 'Set Method'{
             BeforeEach {
+                Mock -CommandName Get-PrinterDriver -MockWith { }
                 Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter {$name -eq 'myName'}
                 Mock -CommandName Remove-PrinterDriver -MockWith { } -ParameterFilter {$name -eq 'myName'}
                 Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter {$name -eq 'myName1'}
@@ -471,6 +476,8 @@ try {
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online}
                 Mock -CommandName Invoke-Command -MockWith { }
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
+                Mock -CommandName Get-Item -MockWith { $windir }
+                Mock -CommandName Write-Warning -MockWith { }
             } # End BeforeEach
             Context 'Set Ensure Absent' {
                 it 'Set should not find print driver' {
