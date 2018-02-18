@@ -25,33 +25,25 @@ A full list of changes in each version can be found in the [change log](CHANGELO
 
 ## Resources
 
-* **cPrintDriver**: Add or remove print drivers
-* **cPrintDriverSet**: Add or remove multiple print drivers from the same source file
+* [**cPrintDriver**](#cprintdriver) Manages what print drivers are installed on a host
 * [**cPrinter**](#cprinter) Manages printers installed on a host
 
 ### cPrintDriver
 
-cPrintDriver resource has the following properties:
+Manages what print drivers are installed on a host.
 
-* **Name**: The driver name
-* **Version**: The version of the driver
-* **Source**: Where the source .inf file is located
+#### Parameters for cPrintDriver:
+
+* **`[String]` Ensure** _(Write)_: Specifies if the printer should exist or not.  { Present | Absent }.
+* **`[String[]]` Name** _(Required)_: The desired driver name used in the INF file.
+* **`[String]` Version** _(Required)_: Specifies the version of the driver that whould be used.
+* **`[String]` Source** _(Required)_: The location where the INF file is located to install the driver.
+* **`[Boolean]` Purge** _(Write)_: Allows the removal the driver from the driver store after all printers are no longer using it. This is only used when Ensure is set to Absent. 
 
 #### cPrintDriver Examples
 
 * [Add a printer driver](/Examples/Sample_cPrintDriver.ps1)
 
-### cPrintDriverSet
-
-cPrintDriverSet resource has the following properties:
-
-* **Name**: A list of driver names
-* **Version**: The version of the driver
-* **Source**: Where the source .inf file is located
-
-#### cPrintDriverSet Examples
-
-* [Add a printer driver set](/Examples/Sample_cPrintDriverSet.ps1)
 
 ### cPrinter
 
