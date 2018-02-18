@@ -17,10 +17,10 @@ Configuration Sample_cPrinter {
                 PortName = $printer.PortName
                 Address = $printer.Address
                 DriverName = $printer.DriverName
-                LprQueue = $printer.Queue
+                LprQueueName = $printer.Queue
                 Shared = $printer.Shared
                 SNMPEnabled = $printer.SNMPEnabled
-                SNMPCommunityName = $printer.SNMPCommunityName
+                SNMPCommunity = $printer.SNMPCommunity
                 SNMPIndex = $printer.SNMPIndex
             }
         }
