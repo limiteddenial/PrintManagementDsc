@@ -216,7 +216,6 @@ class cPrintDriver {
     {
         # Since we don't have an INF file to look at. We need 
         $InstalledDriverPacks = Get-WindowsDriver -Online -All | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
-        
         foreach ($InstalledDriverPack in $InstalledDriverPacks) 
         {   
             $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver | Where-Object {$this.Name -contains $_.HardwareDescription}
