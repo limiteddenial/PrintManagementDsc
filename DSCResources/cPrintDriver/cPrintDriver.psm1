@@ -30,8 +30,52 @@ class cPrintDriver {
     {
         if($this.Ensure -eq [Ensure]::Present)
         {
-            
-        }
+            $stagedDriver = $this.InstalledDriver()
+            if([string]::IsNullOrEmpty($stagedDriver))
+            {
+                $output = Invoke-Command -ScriptBlock {
+                    param(
+                        [Parameter()]$Driver
+                    )
+                    & "C:\Windows\System32\pnputil.exe" /add-driver "$Driver"
+                } -ArgumentList ($stagedDriver)
+                [regex]$DriverAdded = 'Published Name:\s*(?<Driver>oem\d+\.inf)'
+                $successDriverAdd = $DriverAdded.Match($output)
+                if($successDriverAdd.Groups['Driver'].Success)
+                {
+                    $this.Source = $successDriverAdd.Groups['Driver'].Value
+                } # End if DriverAdded
+                else 
+                {
+                    Write-Error -Message ($this.Messages.FailedToStageDriver -f $this.Source)
+                    return
+                }
+            } # End Else
+            Foreach ($Name in $this.Name)
+            {
+                try
+                {
+                    $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
+                } # End Try
+                catch 
+                {
+                    $installedPrintDriver = $null
+                    $AddPrinterPortParams = @{
+                        InfPath = $this.Source
+                        Name = $Name
+                    }
+                    Add-PrinterDriver @AddPrinterPortParams
+                } # End catch
+                if($null -ne $installedPrintDriver -and $installedPrintDriver.InfPath -ne $stagedDriver)
+                {
+                    $AddPrinterPortParams = @{
+                        InfPath = $this.Source
+                        Name = $Name
+                    }
+                    Add-PrinterDriver @AddPrinterPortParams
+                } # End if installedPrintDriver
+            } # End foreach Name
+        } # End if Ensure Present
         else 
         {
             Foreach ($Name in $this.Name)
@@ -61,12 +105,11 @@ class cPrintDriver {
                         Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver)
                     } # End if driverConflicts
                     else {
-                        Invoke-Command -ScriptBlock {
+                        $output = Invoke-Command -ScriptBlock {
                             param(
                                 [Parameter()]$Driver
                             )
-                            $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
-                            & "$system32Path\pnputil.exe" /delete-driver "$Driver" | Out-Null
+                            & "C:\Windows\System32\pnputil.exe" /delete-driver "$Driver"
                         } -ArgumentList ($stagedDriver)
                     } # End else driverConflicts
                 } # End If StagedDriver
