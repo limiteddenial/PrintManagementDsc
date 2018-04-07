@@ -320,14 +320,22 @@ class cPrinter {
         } # End Else absent
     } # End Set()
     [bool] Test() {
-        try {
-            $printer = Get-Printer -Name $this.Name -Full
-        } catch {
+        try 
+        {
+            $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
+        } 
+        catch 
+        {
+            Write-Verbose -Message ($this.Messages.PrinterDoesNotExist -f $this.Name)
             $printer = $null
-        }
-        try {
-            $printerPort = Get-PrinterPort -Name $this.PortName
-        } catch {
+        } 
+        try 
+        {
+            $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
+        } 
+        catch 
+        {
+            Write-Verbose -Message ($this.Messages.PrinterPortDoesNotExist -f $this.PortName)
             $printerPort = $null
         }
         if($this.Ensure -eq [Ensure]::Present){
@@ -340,10 +348,26 @@ class cPrinter {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PrinterPort","Absent",$this.Ensure)
                 return $false
             } # End PrinterPort
+            if ($this.DriverName -ne $printer.DriverName) {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
+                return $false
+            } # End DriverName
+            Write-Warning "past Drivername"
+            if ($null -ne $this.PermissionSDDL -and $this.PermissionSDDL -ne $printer.PermissionSDDL) {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PermissionSDDL",$printer.PermissionSDDL,$this.PermissionSDDL)
+                return $false
+            } # End PermissionSDDL
+            write-warning "past Perms"
+            if($this.Shared -ne [System.Convert]::ToBoolean($printer.Shared)){
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
+                return $false
+            } # End Shared
+            Write-Warning "past shared"
             if($this.PortName -ne $printer.PortName){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             } # End PortName
+            Write-Warning "past portname"
             switch ($printerPort.Description) {
                 "PaperCut TCP/IP Port" {  
                     try {
@@ -362,7 +386,7 @@ class cPrinter {
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Address",$printerPort.PrinterHostAddress,$this.Address)
                         return $false
                     } # End Address
-                    if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
+                    if($this.SNMPEnabled -ne [System.Convert]::ToBoolean($printerPort.SNMPEnabled)){
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMPEnabled,$this.SNMPEnabled)
                         return $false
                     } # End SNMPEnabled
@@ -382,18 +406,6 @@ class cPrinter {
                     } # End lprQueueName
                 } # End Default
             } # End Switch
-            if ($null -ne $this.DriverName -and $this.DriverName -ne $printer.DriverName) {
-                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
-                return $false
-            } # End DriverName
-            if ($null -ne $this.PermissionSDDL -and $this.PermissionSDDL -ne $printer.PermissionSDDL) {
-                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PermissionSDDL",$printer.PermissionSDDL,$this.PermissionSDDL)
-                return $false
-            } # End PermissionSDDL
-            if($this.Shared.GetType().Name -eq 'Boolean' -and $this.Shared -ne $printer.Shared){
-                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
-                return $false
-            } # End Shared
             # All the conditions have been met so we will return true so the set() method doesn't get called as everyting is in a desired state. 
             return $true
         } else {
