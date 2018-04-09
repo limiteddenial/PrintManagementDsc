@@ -352,22 +352,19 @@ class cPrinter {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "DriverName",$printer.DriverName,$this.DriverName)
                 return $false
             } # End DriverName
-            Write-Warning "past Drivername"
             if ($null -ne $this.PermissionSDDL -and $this.PermissionSDDL -ne $printer.PermissionSDDL) {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PermissionSDDL",$printer.PermissionSDDL,$this.PermissionSDDL)
                 return $false
             } # End PermissionSDDL
-            write-warning "past Perms"
             if($this.Shared -ne [System.Convert]::ToBoolean($printer.Shared)){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Shared",$printer.Shared,$this.Shared)
                 return $false
             } # End Shared
-            Write-Warning "past shared"
             if($this.PortName -ne $printer.PortName){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName",$printer.PortName,$this.PortName)
                 return $false
             } # End PortName
-            Write-Warning "past portname"
+            
             switch ($printerPort.Description) {
                 "PaperCut TCP/IP Port" {  
                     try {
