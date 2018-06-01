@@ -8,7 +8,7 @@ enum PortType {
     PaperCut
 }
 [DscResource()]
-class cPrinter {
+class Printer {
     [DscProperty(Mandatory)]
     [Ensure] $Ensure
     
@@ -47,8 +47,10 @@ class cPrinter {
 
     hidden $Messages = ""
 
-    cPrinter(){
-        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH))))
+    Printer(){
+        $this.Messages = Get-LocalizedData `
+            -ResourceName 'Printer' `
+            -ResourcePath (Split-Path -Parent $PSCOMMANDPATH)
     }
 
     [void] Set(){
@@ -417,8 +419,8 @@ class cPrinter {
             return $true
         } # End Ensure
     } # End Test()
-    [cPrinter] Get(){ 
-        $ReturnObject = [cPrinter]::new()
+    [Printer] Get(){ 
+        $ReturnObject = [Printer]::new()
         # Gathering the printer properties
         try {
             $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
