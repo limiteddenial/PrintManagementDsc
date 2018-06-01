@@ -28,8 +28,8 @@ build: false
 test_script:
     - ps: |
         Invoke-AppveyorTestScriptTask `
+            -Type 'Harness' `
             -MainModulePath $mainModuleFolder `
-            -CodeCoverage `
             -CodeCovIo
 #---------------------------------#
 #      deployment configuration   #
