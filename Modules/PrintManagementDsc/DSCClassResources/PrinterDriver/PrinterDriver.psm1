@@ -4,7 +4,7 @@ enum Ensure
     Present
 }
 [DscResource()]
-class cPrintDriver {
+class PrinterDriver {
     [DscProperty(Mandatory)]
     [Ensure] $Ensure
     
@@ -22,9 +22,11 @@ class cPrintDriver {
     
     hidden $Messages = ""
     
-    cPrintDriver()
+    PrinterDriver()
     {
-        $this.Messages = (Import-LocalizedData  -FileName 'cPrinterManagement.strings.psd1' -BaseDirectory (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSCOMMANDPATH))))
+        $this.Messages = Get-LocalizedData `
+            -ResourceName 'PrinterDriver' `
+            -ResourcePath (Split-Path -Parent $PSCOMMANDPATH)
     }
     [void] Set()
     {
@@ -178,9 +180,9 @@ class cPrintDriver {
         } # End else
         return $true
     } # End Test()
-    [cPrintDriver] Get()
+    [PrinterDriver] Get()
     {
-        $ReturnObject = [cPrintDriver]::new()
+        $ReturnObject = [PrinterDriver]::new()
         $ReturnObject.Name = @()
         Foreach ($Name in $this.Name)
         {
@@ -232,4 +234,4 @@ class cPrintDriver {
         } # End Foreach
         return $null
     } # End InstalledDriver()
-} # End Class cPrintDriver
+} # End Class PrinterDriver
