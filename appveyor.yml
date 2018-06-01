@@ -5,6 +5,8 @@ version: 2.0.0.{build}
 install:
     - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
+        $moduleName = 'PrintManagementDsc'
+        $mainModuleFolder = "Modules\$moduleName"
         Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
         Invoke-AppveyorInstallTask
 
@@ -25,7 +27,10 @@ build: false
 
 test_script:
     - ps: |
-        Invoke-AppveyorTestScriptTask -CodeCoverage -CodeCovIo
+        Invoke-AppveyorTestScriptTask `
+            -MainModulePath $mainModuleFolder `
+            -CodeCoverage `
+            -CodeCovIo
 #---------------------------------#
 #      deployment configuration   #
 #---------------------------------#
