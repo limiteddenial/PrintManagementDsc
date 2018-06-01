@@ -1,2 +1,5 @@
 DscResource.Tests/
+DscResource.Tests/*
+Modules\PrintManagementDsc\DscResource.Tests/
+Modules\PrintManagementDsc\DscResource.Tests/*
 .vscode/
