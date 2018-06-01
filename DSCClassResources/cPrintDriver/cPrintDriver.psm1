@@ -15,7 +15,7 @@ class cPrintDriver {
     [System.String] $Source
 
     [DscProperty(Mandatory)]
-    [System.Version] $Version
+    [System.String] $Version
 
     [DscProperty()]
     [System.Boolean] $Purge = $false
@@ -35,22 +35,27 @@ class cPrintDriver {
             {
                 $output = Invoke-Command -ScriptBlock {
                     param(
-                        [Parameter()]$Driver
+                        [Parameter()]$Source
                     )
-                    & "C:\Windows\System32\pnputil.exe" /add-driver "$Driver"
-                } -ArgumentList ($stagedDriver)
+                    & C:\Windows\System32\pnputil.exe /add-driver "$Source"
+                } -ArgumentList ($this.Source)
                 [regex]$DriverAdded = 'Published Name:\s*(?<Driver>oem\d+\.inf)'
                 $successDriverAdd = $DriverAdded.Match($output)
-                if($successDriverAdd.Groups['Driver'].Success)
-                {
-                    $this.Source = $successDriverAdd.Groups['Driver'].Value
+                if($successDriverAdd.Success)
+                {   
+                    $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
                 } # End if DriverAdded
                 else 
                 {
                     Write-Error -Message ($this.Messages.FailedToStageDriver -f $this.Source)
                     return
-                }
+                } # End Else
             } # End Else
+            else
+            {
+                # Need to reset the Source path to the driver store location
+                $this.Source = $stagedDriver
+            } # End else
             Foreach ($Name in $this.Name)
             {
                 try
@@ -186,7 +191,7 @@ class cPrintDriver {
             catch
             {
                 $installedPrintDriver = $null
-                # Print driver isn't installed, need to look in the driver store to see if it is there. Only checking if the $Pruge is set to true
+                # Print driver isn't installed, need to look in the driver store to see if it is there. Only checking if the $Purge is set to true
                 $ReturnObject.Ensure = [Ensure]::Absent
                 if($this.Purge -eq $true)
                 {
@@ -215,10 +220,10 @@ class cPrintDriver {
     hidden [string] InstalledDriver() 
     {
         # Since we don't have an INF file to look at. We need 
-        $InstalledDriverPacks = Get-WindowsDriver -Online -All | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
+        $InstalledDriverPacks = Get-WindowsDriver -Online -All -Verbose:$false | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
         foreach ($InstalledDriverPack in $InstalledDriverPacks) 
         {   
-            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver | Where-Object {$this.Name -contains $_.HardwareDescription}
+            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$this.Name -contains $_.HardwareDescription}
             if($DriverExists)
             {
                 Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
