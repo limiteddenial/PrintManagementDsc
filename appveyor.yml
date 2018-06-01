@@ -3,7 +3,6 @@
 #---------------------------------#
 version: 2.0.0.{build}
 install:
-    #change git location for now
     - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
         Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
