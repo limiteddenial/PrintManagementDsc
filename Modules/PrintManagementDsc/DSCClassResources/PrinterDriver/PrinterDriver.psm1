@@ -24,9 +24,7 @@ class PrinterDriver {
     
     PrinterDriver()
     {
-        $this.Messages = Get-LocalizedData `
-            -ResourceName 'PrinterDriver' `
-            -ResourcePath (Split-Path -Parent $PSCOMMANDPATH)
+        $this.Messages = Import-LocalizedData -FileName 'PrinterDriver.strings.ps1' -BaseDirectory (Split-Path -Parent $PSCOMMANDPATH)
     }
     [void] Set()
     {

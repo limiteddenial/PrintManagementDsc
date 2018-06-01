@@ -48,9 +48,7 @@ class Printer {
     hidden $Messages = ""
 
     Printer(){
-        $this.Messages = Get-LocalizedData `
-            -ResourceName 'Printer' `
-            -ResourcePath (Split-Path -Parent $PSCOMMANDPATH)
+        $this.Messages = Import-LocalizedData -FileName 'Printer.strings.ps1' -BaseDirectory (Split-Path -Parent $PSCOMMANDPATH)
     }
 
     [void] Set(){
