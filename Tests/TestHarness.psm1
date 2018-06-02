@@ -12,7 +12,7 @@ function Invoke-TestHarness
         $DscTestsPath
     )
     $moduleName = 'PrintManagementDsc'
-    Write-Verbose -Message 'Commencing all NetworkingDsc tests'
+    Write-Verbose -Message "Commencing all $moduleName tests"
 
     $repoDir = Join-Path -Path $PSScriptRoot -ChildPath '..\' -Resolve
 
