@@ -24,14 +24,14 @@ A full list of changes in each version can be found in the [change log](CHANGELO
 
 ## Resources
 
-* [**PrinterDriver**](#printdriver) Manages what print drivers are installed on a host
+* [**PrinterDriver**](#printerdriver) Manages what print drivers are installed on a host
 * [**Printer**](#printer) Manages printers installed on a host
 
 ### PrinterDriver
 
 Manages what print drivers are installed on a host.
 
-#### Parameters for PrinterDriver:
+#### Parameters for PrinterDriver
 
 * **`[String]` Ensure** _(Write)_: Specifies if the printer should exist or not.  { Present | Absent }.
 * **`[String[]]` Name** _(Required)_: The desired driver name used in the INF file.
@@ -43,12 +43,11 @@ Manages what print drivers are installed on a host.
 
 * [Add a printer driver](Modules/PrintManagementDsc/Examples/PrinterDriver.ps1)
 
-
 ### Printer
 
 Manages printers installed on a host.
 
-#### Parameters for Printer:
+#### Parameters for Printer
 
 * **`[String]` Name** _(Key)_: The desired name of the printer.
 * **`[String]` Ensure** _(Write)_: Specifies if the printer should exist or not.  { Present | Absent }.
