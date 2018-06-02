@@ -17,7 +17,7 @@ function Invoke-TestHarness
     $repoDir = Join-Path -Path $PSScriptRoot -ChildPath '..\' -Resolve
 
     $testCoverageFiles = @()
-    Get-ChildItem -Path "$repoDir\modules\$moduleName\DSCResources\**\*.psm1" -Recurse | ForEach-Object {
+    Get-ChildItem -Path "$repoDir\modules\$moduleName\DSCClassResources\**\*.psm1" -Recurse | ForEach-Object {
         if ($_.FullName -notlike '*\DSCResource.Tests\*') {
             $testCoverageFiles += $_.FullName
         }
