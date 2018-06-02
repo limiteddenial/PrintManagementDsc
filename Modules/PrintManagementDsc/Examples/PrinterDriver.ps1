@@ -1,29 +1,25 @@
 <#
-    .SYNOPSIS
-        Example to set a printer driver. 
-    .DESCRIPTION
-        This examples adds and installs a print driver. 
+    .EXAMPLE
+        Installs a print driver. 
 #>
-Configuration Sample_cPrintDriver {
+Configuration Example {
+    param
+    (
+        [Parameter()]
+        [System.String[]]
+        $NodeName = 'localhost'
+    )
 
-    Import-DSCResource -ModuleName cPrinterManagement
+    Import-DSCResource -ModuleName PrintManagementDsc
 
-    Node $AllNodes.NodeName {
-        
-        cPrintDriver XeroxGlobal {
+    Node $NodeName 
+    {
+        PrinterDriver XeroxGlobal 
+        {
             Ensure = "Present"
             Name = "Xerox Global Print Driver PCL6"
-            Version = "5496.700.0.0"
+            Version = "1.2.3.4"
             Source = "C:\Drivers\Xerox\x2UNiVX.inf"
-        }
-    }
-}
-$ConfigData = @{ 
-    AllNodes = @( 
-        @{
-            NodeName = "*"
-        }
-    )
-}
-Sample_cPrintDriver -ConfigurationData $ConfigData
-Start-DscConfiguration -Path Sample_PrintDriver -Wait -Verbose -Force
+        } # End PrinterDriver
+    } # End Node
+} # End Configuration
