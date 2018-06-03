@@ -1,12 +1,3 @@
-[string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
-
-$PrinterDriver = [PSObject]@{
-    Ensure = 'Present'
-    Name = 'Generic / Text Only'
-    Version = '6.1.7600.16385'
-    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
-}
-
 Configuration PrinterDriver_Config
 {
     param
@@ -21,10 +12,10 @@ Configuration PrinterDriver_Config
     Node $NodeName
     {
         PrinterDriver Integration_Test {
-            Ensure = $PrinterDriver.Ensure
-            Name = $PrinterDriver.Name
-            Version = $PrinterDriver.Version
-            Source = $PrinterDriver.Source
+            Ensure = $Node.Ensure
+            Name = $Node.Name
+            Version = $Node.Version
+            Source = $Node.Source
         } # End PrinterDriver
     } # End Node
 } # End Configuration

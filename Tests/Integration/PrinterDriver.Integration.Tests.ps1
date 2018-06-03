@@ -1,10 +1,7 @@
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
 
-$PrinterDriver = [PSObject]@{
-    Name = 'Generic / Text Only'
-    Version = '6.1.7600.16385'
-}
+
 
 #region HEADER
 # Integration Test Template Version: 1.1.0
@@ -36,14 +33,26 @@ Start-Service -Name Spooler
 try
 {
     #region Integration Tests
-    $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath "$($script:DSCResourceName).config.ps1"
-    . $ConfigFile -Verbose -ErrorAction Stop
+    
 
-    Describe "$($script:DSCResourceName)_Integration" {
-        #region DEFAULT TESTS
+    Describe "$($script:DSCResourceName)_Integration - Adding Driver" {
+        $configData = @{
+            AllNodes = @(
+                @{
+                    NodeName  = 'localhost'
+                    Ensure = 'Present'
+                    Name = 'Generic / Text Only'
+                    Version = '6.1.7600.16385'
+                    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
+                }
+            )
+        }
+        $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath "$($script:DSCResourceName).config.ps1"
+        . $ConfigFile -Verbose -ErrorAction Stop
+
         It 'Should compile and apply the MOF without throwing' {
             {
-            & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive
+             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfurationData $configData
 
             Start-DscConfiguration `
                 -Path $TestDrive `
@@ -63,10 +72,9 @@ try
             $current = Get-DscConfiguration | Where-Object -FilterScript {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
-            $current[0].Name | Should -Be $PrinterDriver.Name
-            $current[0].Version  | Should -Be $PrinterDriver.Version
+            $current[0].Name | Should -Be $configData.AllNodes[0].Name
+            $current[0].Version  | Should -Be $configData.AllNodes[0].Version
         }
-
     } # End Describe
     #endregion
 } # End Try
