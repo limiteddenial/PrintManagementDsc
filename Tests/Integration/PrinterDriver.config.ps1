@@ -4,7 +4,7 @@ $PrinterDriver = [PSObject]@{
     Ensure = 'Present'
     Name = 'Generic / Text Only'
     Version = '6.1.7600.16385'
-    Source = "$script:moduleRoot\PrinterDriver\prnge001.inf"
+    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
 }
 
 Configuration PrinterDriver_Config
