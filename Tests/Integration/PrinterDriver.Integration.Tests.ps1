@@ -76,6 +76,48 @@ try
             $current[0].Version  | Should -Be $configData.AllNodes[0].Version
         }
     } # End Describe
+    Describe "$($script:DSCResourceName)_Integration - Removing Driver" {
+        $configData = @{
+            AllNodes = @(
+                @{
+                    NodeName  = 'localhost'
+                    Ensure = 'Absent'
+                    Name = 'Generic / Text Only'
+                    Version = '6.1.7600.16385'
+                    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
+                    Purge = $true
+                }
+            )
+        }
+        $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath "$($script:DSCResourceName).config.ps1"
+        . $ConfigFile -Verbose -ErrorAction Stop
+
+        It 'Should compile and apply the MOF without throwing' {
+            {
+             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
+
+            Start-DscConfiguration `
+                -Path $TestDrive `
+                -ComputerName localhost `
+                -Wait `
+                -Verbose `
+                -Force `
+                -ErrorAction Stop
+            } | Should -Not -Throw
+        } # End compile and apply mof
+
+        It 'Should be able to call Get-DscConfiguration without throwing' {
+            { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
+        } # End get-dscconfiguration
+
+        It 'Should have set the resource and all the parameters should match' {
+            $current = Get-DscConfiguration | Where-Object -FilterScript {
+                $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
+            }
+            $current[0].Name | Should -Be $configData.AllNodes[0].Name
+            $current[0].Version  | Should -Be $configData.AllNodes[0].Version
+        }
+    } # End Describe
     #endregion
 } # End Try
 finally
