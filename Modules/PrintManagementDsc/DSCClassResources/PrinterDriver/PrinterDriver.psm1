@@ -34,6 +34,11 @@ class PrinterDriver {
             $stagedDriver = $this.InstalledDriver()
             if([string]::IsNullOrEmpty($stagedDriver))
             {
+                Write-Verbose -Message ( @(
+                        "$($MyInvocation.MyCommand): "
+                        ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
+                    ) -join '' )
+
                 $output = Invoke-Command -ScriptBlock {
                     param(
                         [Parameter()]$Source
@@ -44,6 +49,7 @@ class PrinterDriver {
                 $successDriverAdd = $DriverAdded.Match($output)
                 if($successDriverAdd.Success)
                 {   
+                    Write-Verbose -Message  ($this.Messages.DriverDoesNotExistMessage=Driver -f $this.Name)
                     $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
                 } # End if DriverAdded
                 else 
@@ -227,7 +233,11 @@ class PrinterDriver {
             $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$this.Name -contains $_.HardwareDescription}
             if($DriverExists)
             {
-                Write-Verbose "Found existing driver package at $($InstalledDriverPack.OriginalFileName)"
+                Write-Verbose -Message ( @(
+                        "$($MyInvocation.MyCommand): "
+                        ($this.Messages.FoundStagedDriverMessage -f $InstalledDriverPack.OriginalFileName)
+                    ) -join '' )
+
                 return $InstalledDriverPack.OriginalFileName
             } # End if DriverExists
         } # End Foreach
