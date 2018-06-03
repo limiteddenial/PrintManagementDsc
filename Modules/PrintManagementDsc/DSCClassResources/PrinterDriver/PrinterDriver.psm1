@@ -45,7 +45,7 @@ class PrinterDriver {
                     )
                     & C:\Windows\System32\pnputil.exe /add-driver "$Source"
                 } -ArgumentList ($this.Source)
-                $output
+                write-warning ($output | Out-String)
                 [regex]$DriverAdded = 'Published Name:\s*(?<Driver>oem\d+\.inf)'
                 $successDriverAdd = $DriverAdded.Match($output)
                 if($successDriverAdd.Success)
