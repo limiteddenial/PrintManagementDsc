@@ -1,6 +1,11 @@
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
 
+$PrinterDriver = [PSObject]@{
+    Name = 'Generic / Text Only'
+    Version = '6.1.7600.16385'
+}
+
 #region HEADER
 # Integration Test Template Version: 1.1.0
 [string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
@@ -19,13 +24,11 @@ $TestEnvironment = Initialize-TestEnvironment `
 #endregion
 
 # Downloading Print Driver from microsoft catalog
-Write-Warning 'Downloading Generic -Text Only driver from Microsoft'
+Write-Warning 'Downloading Generic / Text Only driver from Microsoft'
 Invoke-WebRequest 'http://download.windowsupdate.com/msdownload/update/driver/drvs/2011/07/4745_b71b6fcc3d1b83b569cd738e6bdc2f591a205b14.cab' -OutFile "$script:moduleRoot\IntegrationDriver.cab"
 New-Item -Path "$script:moduleRoot" -ItemType Directory -Name 'IntegrationDriver'
 Write-Warning "Extracting CAB file to $script:moduleRoot\IntegrationDriver"
 Expand.exe "$script:moduleRoot\IntegrationDriver.cab" -F:* "$script:moduleRoot\IntegrationDriver"
-Write-Warning (Test-Path "$script:moduleRoot\IntegrationDriver\prnge001.inf")
-Write-Warning (Test-Path C:\Windows\System32\pnputil.exe)
 Start-Service -Name Spooler
 
 # Using try/finally to always cleanup even if something awful happens.
@@ -48,14 +51,20 @@ try
                 -Wait `
                 -Verbose `
                 -Force `
-                -ErrorAction Continue
+                -ErrorAction Stop
             } | Should -Not -Throw
-        }
-
-        Start-Sleep 15
+        } # End compile and apply mof
 
         It 'should be able to call Get-DscConfiguration without throwing' {
             { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
+        } # End get-dscconfiguration
+
+        It 'Should have set the resource and all the parameters should match' {
+            $current = Get-DscConfiguration | Where-Object -FilterScript {
+                $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
+            }
+            $current[0].Name | Should -Be $PrinterDriver.Name
+            $current[0].Version  | Should -Be $PrinterDriver.Version
         }
 
     } # End Describe
