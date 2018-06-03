@@ -52,7 +52,7 @@ try
 
         It 'Should compile and apply the MOF without throwing' {
             {
-             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfurationData $configData
+             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
 
             Start-DscConfiguration `
                 -Path $TestDrive `
