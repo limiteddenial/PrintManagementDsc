@@ -43,7 +43,7 @@ class PrinterDriver {
                     param(
                         [Parameter()]$Source
                     )
-                    & C:\Windows\System32\pnputil.exe /add-driver "$Source"
+                    & C:\Windows\System32\pnputil.exe -a "$Source"
                 } -ArgumentList ($this.Source)
                 write-warning ($output | Out-String)
                 [regex]$DriverAdded = 'Published Name:\s*(?<Driver>oem\d+\.inf)'
@@ -122,7 +122,7 @@ class PrinterDriver {
                             param(
                                 [Parameter()]$Driver
                             )
-                            & "C:\Windows\System32\pnputil.exe" /delete-driver "$Driver"
+                            & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
                         } -ArgumentList ($stagedDriver)
                     } # End else driverConflicts
                 } # End If StagedDriver
