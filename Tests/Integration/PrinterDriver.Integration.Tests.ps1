@@ -25,7 +25,7 @@ New-Item -Path "$script:moduleRoot" -ItemType Directory -Name 'PrinterDriver'
 Write-Warning "Extracting CAB file to $script:moduleRoot\PrinterDriver"
 Expand.exe "$script:moduleRoot\PrinterDriver.cab" -F:* "$script:moduleRoot\PrinterDriver"
 # Using try/finally to always cleanup even if something awful happens.
-$testDrive = "$($pwd.drive.name)\config"
+
 try
 {
     #region Integration Tests
@@ -51,7 +51,7 @@ try
         It 'should be able to call Get-DscConfiguration without throwing' {
             { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
         }
-        
+
     } # End Describe
     #endregion
 } # End Try
