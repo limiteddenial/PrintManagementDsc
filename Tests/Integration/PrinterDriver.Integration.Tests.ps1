@@ -24,8 +24,9 @@ Invoke-WebRequest 'http://download.windowsupdate.com/msdownload/update/driver/dr
 New-Item -Path "$script:moduleRoot" -ItemType Directory -Name 'IntegrationDriver'
 Write-Warning "Extracting CAB file to $script:moduleRoot\IntegrationDriver"
 Expand.exe "$script:moduleRoot\PrinterDriver.cab" -F:* "$script:moduleRoot\IntegrationDriver"
-Get-ChildItem -Path "$script:moduleRoot\IntegrationDriver" -Recurse
-Get-Service -Name Spooler
+Write-Warning (Get-ChildItem -Path "$script:moduleRoot\IntegrationDriver" -Recurse).Count
+
+Write-Warning (Get-Service -Name Spooler).Status
 # Using try/finally to always cleanup even if something awful happens.
 
 try
