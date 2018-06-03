@@ -35,7 +35,7 @@ try
     Describe "$($script:DSCResourceName)_Integration" {
         #region DEFAULT TESTS
         It 'Should compile and apply the MOF without throwing' {
-        {
+            {
             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive
 
             Start-DscConfiguration `
@@ -44,12 +44,12 @@ try
                 -Wait `
                 -Verbose `
                 -Force `
-                -ErrorAction Stop
+                -ErrorAction Continue
             } | Should -Not -Throw
         }
 
         Start-Sleep 15
-        
+
         It 'should be able to call Get-DscConfiguration without throwing' {
             { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
         }
