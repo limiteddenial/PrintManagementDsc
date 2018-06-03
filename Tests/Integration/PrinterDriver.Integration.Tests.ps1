@@ -23,9 +23,9 @@ Write-Warning 'Downloading Generic -Text Only driver from Microsoft'
 Invoke-WebRequest 'http://download.windowsupdate.com/msdownload/update/driver/drvs/2011/07/4745_b71b6fcc3d1b83b569cd738e6bdc2f591a205b14.cab' -OutFile "$script:moduleRoot\IntegrationDriver.cab"
 New-Item -Path "$script:moduleRoot" -ItemType Directory -Name 'IntegrationDriver'
 Write-Warning "Extracting CAB file to $script:moduleRoot\IntegrationDriver"
-Expand.exe "$script:moduleRoot\PrinterDriver.cab" -F:* "$script:moduleRoot\IntegrationDriver"
+Expand.exe "$script:moduleRoot\IntegrationDriver.cab" -F:* "$script:moduleRoot\IntegrationDriver"
 Write-Warning (Get-ChildItem -Path "$script:moduleRoot\IntegrationDriver" -Recurse).Count
-
+Start-Service -Name Spooler
 Write-Warning (Get-Service -Name Spooler).Status
 # Using try/finally to always cleanup even if something awful happens.
 
