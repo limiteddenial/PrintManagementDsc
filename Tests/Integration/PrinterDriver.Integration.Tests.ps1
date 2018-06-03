@@ -48,6 +48,8 @@ try
             } | Should -Not -Throw
         }
 
+        Start-Sleep 15
+        
         It 'should be able to call Get-DscConfiguration without throwing' {
             { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
         }
