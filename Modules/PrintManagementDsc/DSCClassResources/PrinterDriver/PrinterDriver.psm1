@@ -49,7 +49,7 @@ class PrinterDriver {
                 $successDriverAdd = $DriverAdded.Match($output)
                 if($successDriverAdd.Success)
                 {   
-                    Write-Verbose -Message  ($this.Messages.DriverDoesNotExistMessage=Driver -f $this.Name)
+                    Write-Verbose -Message  ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
                     $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
                 } # End if DriverAdded
                 else 
