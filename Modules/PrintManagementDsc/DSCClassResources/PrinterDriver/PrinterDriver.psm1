@@ -26,6 +26,7 @@ class PrinterDriver {
     {
         $this.Messages = Import-LocalizedData -FileName 'PrinterDriver.strings.ps1' -BaseDirectory (Split-Path -Parent $PSCOMMANDPATH)
         Import-Module -Name Dism -Verbose:$false
+        Write-Verbose [int]$this.Purge
     }
     [void] Set()
     {
