@@ -108,6 +108,7 @@ class PrinterDriver {
             } # End foreach Name
             if($this.Purge -eq $true)
             {
+                Write-Verbose -Message $this.Messages.PurgingDriverMessage
                 $stagedDriver = $this.InstalledDriver()
                 if(-not [string]::IsNullOrEmpty($stagedDriver))
                 {
@@ -118,6 +119,7 @@ class PrinterDriver {
                         Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver)
                     } # End if driverConflicts
                     else {
+                        Write-Verbose -Message ($this.Messages.RemovingDriverMessage -f $stagedDriver)
                         $output = Invoke-Command -ScriptBlock {
                             param(
                                 [Parameter()]$Driver

@@ -102,7 +102,7 @@ try
                 -Wait `
                 -Verbose `
                 -Force `
-                -ErrorAction Stop
+                -ErrorAction Continue
             } | Should -Not -Throw
         } # End compile and apply mof
 
