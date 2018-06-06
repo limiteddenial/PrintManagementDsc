@@ -95,7 +95,7 @@ class PrinterDriver {
             {
                 try
                 {
-                    Write-Verbose -Message ($this.Messages.RemovingPrintDriver -f $stagedDriver)
+                    Write-Verbose -Message ($this.Messages.RemovingPrintDriver -f $Name)
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
                 } # End Try
                 catch 
