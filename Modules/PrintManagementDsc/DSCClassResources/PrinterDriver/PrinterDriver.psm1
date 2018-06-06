@@ -29,7 +29,6 @@ class PrinterDriver {
     }
     [void] Set()
     {
-        Write-Verbose -Message ("Purge is set to: {0}" -f $this.Purge)
         if($this.Ensure -eq [Ensure]::Present)
         {
             $stagedDriver = $this.InstalledDriver()
@@ -128,13 +127,14 @@ class PrinterDriver {
                             )
                             & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
                         } -ArgumentList ($stagedDriver)
+                        Write-Verbose $output
                         if ($output -ilike "*successfully*")
                         {
                             Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver)
                         }
                         else 
                         {
-                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $output)
+                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $output.replace("`n",' '))
                         }
                     } # End else driverConflicts
                 } # End If StagedDriver
