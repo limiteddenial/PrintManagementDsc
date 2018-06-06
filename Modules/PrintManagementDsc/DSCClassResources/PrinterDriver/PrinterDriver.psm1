@@ -29,7 +29,7 @@ class PrinterDriver {
     }
     [void] Set()
     {
-        Write-Verbose [int]$this.Purge
+        Write-Verbose [string]($this.Purge)
         if($this.Ensure -eq [Ensure]::Present)
         {
             $stagedDriver = $this.InstalledDriver()
