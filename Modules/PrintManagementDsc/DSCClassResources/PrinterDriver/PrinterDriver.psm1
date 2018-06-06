@@ -29,7 +29,7 @@ class PrinterDriver {
     }
     [void] Set()
     {
-        Write-Verbose [string]($this.Purge)
+        Write-Verbose -Message ("Purge is set to: {0}" -f $this.Purge)
         if($this.Ensure -eq [Ensure]::Present)
         {
             $stagedDriver = $this.InstalledDriver()
