@@ -127,7 +127,7 @@ class PrinterDriver {
                             )
                             & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
                         } -ArgumentList ($stagedDriver)
-                        Write-Verbose $output
+                        Write-Verbose $output.replace("`n",' ')
                         if ($output -ilike "*successfully*")
                         {
                             Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver)
