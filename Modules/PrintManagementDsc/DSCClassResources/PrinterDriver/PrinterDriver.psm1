@@ -128,6 +128,14 @@ class PrinterDriver {
                             )
                             & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
                         } -ArgumentList ($stagedDriver)
+                        if ($output -ilike "*successfully*")
+                        {
+                            Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver)
+                        }
+                        else 
+                        {
+                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $stagedDriver)
+                        }
                     } # End else driverConflicts
                 } # End If StagedDriver
             } # End if Purge

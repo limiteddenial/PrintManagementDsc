@@ -2,6 +2,8 @@
 ConvertFrom-StringData @'
     CheckingForRemovalConflicts=Verifying that there are no drivers that are adding using INF of {0}
     DriverDoesNotExistMessage=Driver {0} was not found in the driver store.
+    DriverRemovedSuccessfullyMessage=Driver {0} was successfully removed.
+    ErrorRemovingDriverMessage=Unable to remove driver, returned: {0}.
     FailedToStageDriver=Failed to stage print driver from source {0}
     FoundConflicts={0} print drivers are using {1}. Driver will not be removed til all conflicts are resolved
     FoundStagedDriverMessage=Found staged driver path of {0}.
