@@ -134,7 +134,7 @@ class PrinterDriver {
                         }
                         else 
                         {
-                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $stagedDriver)
+                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $output)
                         }
                     } # End else driverConflicts
                 } # End If StagedDriver
