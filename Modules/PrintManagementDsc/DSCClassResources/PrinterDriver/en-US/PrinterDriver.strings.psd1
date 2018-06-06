@@ -10,6 +10,7 @@ ConvertFrom-StringData @'
     NotInDesiredStateMultipleObjects={0} does not match desired state for {1}. Current value: {2} - Desired Value: {3}
     NewPrinterPort=Created {0} Port {1}
     RemovingDriverMessage=Removing driver {0}.
-    SourceNotFound=Source {0} does not exist
+    RemovingPrintDriver=Removing Print Driver {0}.
+    SourceNotFound=Source {0} does not exist.
     UpdatedDesiredState={0} will be updated to match desired state. New value: {1} - Old Value: {2}
 '@
