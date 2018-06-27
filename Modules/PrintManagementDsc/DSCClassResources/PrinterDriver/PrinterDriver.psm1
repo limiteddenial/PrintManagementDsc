@@ -29,15 +29,12 @@ class PrinterDriver {
     }
     [void] Set()
     {
-        if($this.Ensure -eq [Ensure]::Present)
+        if ($this.Ensure -eq [Ensure]::Present)
         {
             $stagedDriver = $this.InstalledDriver()
-            if([string]::IsNullOrEmpty($stagedDriver))
+            if ($null -eq $stagedDriver)
             {
-                Write-Verbose -Message ( @(
-                        "$($MyInvocation.MyCommand): "
-                        ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
-                    ) -join '' )
+                Write-Verbose -Message ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
 
                 $output = Invoke-Command -ScriptBlock {
                     param(
@@ -48,7 +45,7 @@ class PrinterDriver {
                 
                 [regex]$DriverAdded = '(?i)Published Name\s?:\s*(?<Driver>oem\d+\.inf)'
                 $successDriverAdd = $DriverAdded.Match($output)
-                if($successDriverAdd.Success)
+                if ($successDriverAdd.Success)
                 {   
                     Write-Verbose -Message  ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
                     $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
@@ -62,10 +59,15 @@ class PrinterDriver {
             else
             {
                 # Need to reset the Source path to the driver store location
-                $this.Source = $stagedDriver
+                $this.Source = $stagedDriver.OriginalFileName
             } # End else
+
             Foreach ($Name in $this.Name)
             {
+                $AddPrinterPortParams = @{
+                    InfPath = $this.Source
+                    Name = $Name
+                }
                 try
                 {
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
@@ -73,18 +75,11 @@ class PrinterDriver {
                 catch 
                 {
                     $installedPrintDriver = $null
-                    $AddPrinterPortParams = @{
-                        InfPath = $this.Source
-                        Name = $Name
-                    }
                     Add-PrinterDriver @AddPrinterPortParams
                 } # End catch
-                if($null -ne $installedPrintDriver -and $installedPrintDriver.InfPath -ne $stagedDriver)
+
+                if ($null -ne $installedPrintDriver -and $installedPrintDriver.InfPath -ne $stagedDriver.OriginalFileName)
                 {
-                    $AddPrinterPortParams = @{
-                        InfPath = $this.Source
-                        Name = $Name
-                    }
                     Add-PrinterDriver @AddPrinterPortParams
                 } # End if installedPrintDriver
             } # End foreach Name
@@ -111,30 +106,30 @@ class PrinterDriver {
             {
                 Write-Verbose -Message $this.Messages.PurgingDriverMessage
                 $stagedDriver = $this.InstalledDriver()
-                if(-not [string]::IsNullOrEmpty($stagedDriver))
+                if($null -ne $stagedDriver.Driver)
                 {
-                    Write-Verbose -Message ($this.Messages.CheckingForRemovalConflicts -f $stagedDriver)
-                    $driverConflicts = Get-PrinterDriver | Where-Object InfPath -eq $stagedDriver
+                    Write-Verbose -Message ($this.Messages.CheckingForRemovalConflicts -f $stagedDriver.Driver)
+                    $driverConflicts = Get-PrinterDriver | Where-Object InfPath -eq $stagedDriver.OriginalFileName
                     if([bool]$driverConflicts)
                     {
-                        Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver)
+                        Write-Warning -Message ($this.Messages.FoundConflicts -f ($driverConflicts.Name -join ','),$stagedDriver.OriginalFileName)
                     } # End if driverConflicts
                     else {
-                        Write-Verbose -Message ($this.Messages.RemovingDriverMessage -f $stagedDriver)
+                        Write-Verbose -Message ($this.Messages.RemovingDriverMessage -f $stagedDriver.OriginalFileName)
                         $output = Invoke-Command -ScriptBlock {
                             param(
                                 [Parameter()]$Driver
                             )
                             & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
-                        } -ArgumentList ($stagedDriver)
-                        Write-Verbose $output.replace("`n",' ')
+                        } -ArgumentList ($stagedDriver.Driver)
+                        
                         if ($output -ilike "*successfully*")
                         {
-                            Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver)
+                            Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver.Driver)
                         }
                         else 
                         {
-                            Write-Error -Message ($this.Messages.ErrorRemovingDriverMessage -f $output.replace("`n",' '))
+                            Write-Error -Message $this.Messages.ErrorRemovingDriverMessage
                         }
                     } # End else driverConflicts
                 } # End If StagedDriver
@@ -216,7 +211,7 @@ class PrinterDriver {
                 if($this.Purge -eq $true)
                 {
                     $stagedDriver = $this.InstalledDriver()
-                    if(-not [string]::IsNullOrEmpty($stagedDriver))
+                    if($null -ne $stagedDriver)
                     {
                         $ReturnObject.Ensure = [Ensure]::Present
                     } # End If StagedDriver
@@ -237,23 +232,25 @@ class PrinterDriver {
         } # End Foreach Name
         return $ReturnObject
     } # End Get()
-    hidden [string] InstalledDriver() 
+    hidden [System.Collections.Hashtable] InstalledDriver() 
     {
         # Since we don't have an INF file to look at. We need 
         $InstalledDriverPacks = Get-WindowsDriver -Online -All -Verbose:$false | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
         foreach ($InstalledDriverPack in $InstalledDriverPacks) 
         {   
             $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$this.Name -contains $_.HardwareDescription}
-            if($DriverExists)
+            if ($DriverExists)
             {
-                Write-Verbose -Message ( @(
-                        "$($MyInvocation.MyCommand): "
-                        ($this.Messages.FoundStagedDriverMessage -f $InstalledDriverPack.OriginalFileName)
-                    ) -join '' )
+                Write-Verbose -Message ($this.Messages.FoundStagedDriverMessage -f $InstalledDriverPack.OriginalFileName)
+                $returnDriver = @{
+                    OriginalFileName = $InstalledDriverPack.OriginalFileName
+                    Driver = $InstalledDriverPack.Driver
+                }
 
-                return $InstalledDriverPack.OriginalFileName
+                return $returnDriver
             } # End if DriverExists
         } # End Foreach
+
         return $null
     } # End InstalledDriver()
 } # End Class PrinterDriver
