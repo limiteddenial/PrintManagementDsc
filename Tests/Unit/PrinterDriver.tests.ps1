@@ -832,9 +832,9 @@ try {
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
                 Mock -CommandName Get-WindowsDriver -MockWith { return $fakeWindowsDriversWithPrinters }  -ParameterFilter {$Online -and $All }
 
-                $inslledDriver = $absentParms.InstalledDriver() 
-                $inslledDriver.OriginalFileName | Should -BeExactly 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
-                $inslledDriver.Driver | Should -BeExactly 'oem10.inf'
+                $installedDriver = $absentParms.InstalledDriver() 
+                $installedDriver.OriginalFileName | Should -BeExactly 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf'
+                $installedDriver.Driver | Should -BeExactly 'oem10.inf'
                 
                 Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $Driver -eq 'oem10.inf'}
                 Assert-MockCalled -CommandName Get-WindowsDriver -Times 1 -Exactly -Scope It -ParameterFilter {$Online -and $All}
