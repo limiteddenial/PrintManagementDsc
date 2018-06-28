@@ -1,4 +1,4 @@
-enum Ensure 
+enum Ensure
 {
     Absent
     Present
@@ -7,8 +7,8 @@ enum Ensure
 class PrinterDriver {
     [DscProperty(Mandatory)]
     [Ensure] $Ensure
-    
-    [DscProperty(Mandatory)] 
+
+    [DscProperty(Mandatory)]
     [System.String[]]$Name
 
     [DscProperty(Key)]
@@ -19,9 +19,9 @@ class PrinterDriver {
 
     [DscProperty()]
     [System.Boolean] $Purge = $false
-    
+
     hidden $Messages = ""
-    
+
     PrinterDriver()
     {
         $this.Messages = Import-LocalizedData -FileName 'PrinterDriver.strings.ps1' -BaseDirectory (Split-Path -Parent $PSCOMMANDPATH)
@@ -42,15 +42,15 @@ class PrinterDriver {
                     )
                     & C:\Windows\System32\pnputil.exe -a "$Source"
                 } -ArgumentList ($this.Source)
-                
+
                 [regex]$DriverAdded = '(?i)Published Name\s?:\s*(?<Driver>oem\d+\.inf)'
                 $successDriverAdd = $DriverAdded.Match($output)
                 if ($successDriverAdd.Success)
-                {   
+                {
                     Write-Verbose -Message  ($this.Messages.DriverDoesNotExistMessage -f $this.Name)
                     $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
                 } # End if DriverAdded
-                else 
+                else
                 {
                     Write-Error -Message ($this.Messages.FailedToStageDriver -f $this.Source)
                     return
@@ -72,7 +72,7 @@ class PrinterDriver {
                 {
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
                 } # End Try
-                catch 
+                catch
                 {
                     $installedPrintDriver = $null
                     Add-PrinterDriver @AddPrinterPortParams
@@ -84,7 +84,7 @@ class PrinterDriver {
                 } # End if installedPrintDriver
             } # End foreach Name
         } # End if Ensure Present
-        else 
+        else
         {
             Foreach ($Name in $this.Name)
             {
@@ -93,7 +93,7 @@ class PrinterDriver {
                     Write-Verbose -Message ($this.Messages.RemovingPrintDriver -f $Name)
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
                 } # End Try
-                catch 
+                catch
                 {
                     $installedPrintDriver = $null
                 } # End catch
@@ -122,12 +122,12 @@ class PrinterDriver {
                             )
                             & "C:\Windows\System32\pnputil.exe" -f -d "$Driver"
                         } -ArgumentList ($stagedDriver.Driver)
-                        
+
                         if ($output -ilike "*successfully*")
                         {
                             Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver.Driver)
                         }
-                        else 
+                        else
                         {
                             Write-Error -Message $this.Messages.ErrorRemovingDriverMessage
                         }
@@ -146,7 +146,7 @@ class PrinterDriver {
                 {
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
                 } # End Try
-                catch 
+                catch
                 {
                     $installedPrintDriver = $null
                     Write-Verbose -Message  ($this.Messages.NotInDesiredStateMultipleObjects -f "Ensure",$Name,'Absent',$this.Ensure)
@@ -164,15 +164,15 @@ class PrinterDriver {
                 }
             } # End Foreach Name
         } # End if Ensure Present
-        else 
+        else
         {
             Foreach ($Name in $this.Name)
             {
-                try 
+                try
                 {
                     $installedPrintDriver = Get-PrinterDriver -Name $Name -ErrorAction Stop
                 } # End try
-                catch 
+                catch
                 {
                     $installedPrintDriver = $null
                 } # End catch
@@ -232,12 +232,12 @@ class PrinterDriver {
         } # End Foreach Name
         return $ReturnObject
     } # End Get()
-    hidden [System.Collections.Hashtable] InstalledDriver() 
+    hidden [System.Collections.Hashtable] InstalledDriver()
     {
-        # Since we don't have an INF file to look at. We need 
+        # Since we don't have an INF file to look at. We need look in the driver store.
         $InstalledDriverPacks = Get-WindowsDriver -Online -All -Verbose:$false | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
-        foreach ($InstalledDriverPack in $InstalledDriverPacks) 
-        {   
+        foreach ($InstalledDriverPack in $InstalledDriverPacks)
+        {
             $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$this.Name -contains $_.HardwareDescription}
             if ($DriverExists)
             {
