@@ -71,7 +71,6 @@ class Printer {
             [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
             if($null -eq $printerPort){
-                Write-Verbose -Message ($this.Messages.NewPrinterPortNeededMessage -f $this.PortType,$this.PortName)
                 switch ($this.PortType) {
                     'PaperCut' {
                         $this.CreatePaperCutPort()
