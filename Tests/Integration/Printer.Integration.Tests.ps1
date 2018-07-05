@@ -19,7 +19,11 @@ $TestEnvironment = Initialize-TestEnvironment `
 #endregion
 
 Start-Service -Name Spooler
-(Get-PrinterDriver).Name
+Write-Warning -Message "Listing all drivers installed"
+foreach ($driver in (Get-PrinterDriver).Name) {
+    Write-Warning -Message "Found driver: $driver"
+}
+
 
 # Using try/finally to always cleanup even if something awful happens.
 try
