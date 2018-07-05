@@ -4,7 +4,7 @@ $TestPrinterLPR = [PSObject]@{
     PortType = 'LPR'
     PortName = 'IntegrationLPRPort'
     Address = 'Test.local'
-    DriverName = ''
+    DriverName = 'Microsoft XPS Document Writer'
     LprQueueName = 'dummyQueue'
     Shared = $false
 }
@@ -23,7 +23,7 @@ Configuration Printer_Config
     Node $NodeName
     {
         Printer LPRPrinter {
-            Ensure = Pr
+            Ensure = $TestPrinterLPR.Ensure
             Name = $TestPrinterLPR.Name
             PortType = $TestPrinterLPR.PortType
             PortName = $TestPrinterLPR.PortName
