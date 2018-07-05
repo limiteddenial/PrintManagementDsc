@@ -19,6 +19,7 @@ $TestEnvironment = Initialize-TestEnvironment `
 #endregion
 
 Start-Service -Name Spooler
+(Get-PrinterDriver).Name
 
 # Using try/finally to always cleanup even if something awful happens.
 try
