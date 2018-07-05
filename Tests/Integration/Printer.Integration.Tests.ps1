@@ -26,8 +26,37 @@ try
     . $ConfigFile -Verbose -ErrorAction Stop
 
     Describe "$($script:DSCResourceName)_Integration" {
-        #region DEFAULT TESTS
-       
+        It 'Should compile and apply the MOF without throwing' {
+            {
+             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive
+
+            Start-DscConfiguration `
+                -Path $TestDrive `
+                -ComputerName localhost `
+                -Wait `
+                -Verbose `
+                -Force `
+                -ErrorAction Stop
+            } | Should -Not -Throw
+        } # End compile and apply mof
+
+        It 'should be able to call Get-DscConfiguration without throwing' {
+            { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
+        } # End get-dscconfiguration
+
+        It 'Should have set the resource and all the parameters should match' {
+            $current = Get-DscConfiguration | Where-Object -FilterScript {
+                $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
+            }
+            
+            $current[0].Name | Should -Be 'IntegrationLPR'
+            $current[0].PortType  | Should -Be 'LPR'
+            $current[0].PortName  | Should -Be 'IntegrationLPRPort'
+            $current[0].Address  | Should -Be 'Test.local'
+            $current[0].DriverName  | Should -Be 'Microsoft XPS Document Writer'
+            $current[0].LprQueueName  | Should -Be 'dummyQueue'
+            $current[0].Shared   | Should -Be $false
+        }
     } # End Describe
     #endregion
 } # End Try
