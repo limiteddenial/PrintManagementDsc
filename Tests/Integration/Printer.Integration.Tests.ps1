@@ -60,7 +60,7 @@ try
             $current[0].PortType  | Should -Be 'LPR'
             $current[0].PortName  | Should -Be 'IntegrationLPRPort'
             $current[0].Address  | Should -Be 'Test.local'
-            $current[0].DriverName  | Should -Be 'Microsoft XPS Document Writer'
+            $current[0].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
             $current[0].LprQueueName  | Should -Be 'dummyQueue'
             $current[0].Shared   | Should -Be $false
         }

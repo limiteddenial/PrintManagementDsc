@@ -4,7 +4,7 @@ $TestPrinterLPR = [PSObject]@{
     PortType = 'LPR'
     PortName = 'IntegrationLPRPort'
     Address = 'Test.local'
-    DriverName = 'Microsoft XPS Document Writer'
+    DriverName = 'Microsoft XPS Document Writer v4'
     LprQueueName = 'dummyQueue'
     Shared = $false
 }
