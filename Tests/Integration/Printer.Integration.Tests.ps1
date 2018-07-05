@@ -18,6 +18,8 @@ $TestEnvironment = Initialize-TestEnvironment `
     -TestType Integration
 #endregion
 
+Start-Service -Name Spooler
+
 # Using try/finally to always cleanup even if something awful happens.
 try
 {
@@ -48,7 +50,7 @@ try
             $current = Get-DscConfiguration | Where-Object -FilterScript {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
-            
+
             $current[0].Name | Should -Be 'IntegrationLPR'
             $current[0].PortType  | Should -Be 'LPR'
             $current[0].PortName  | Should -Be 'IntegrationLPRPort'
