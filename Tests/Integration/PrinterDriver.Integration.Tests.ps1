@@ -115,8 +115,8 @@ try
             $current = Get-DscConfiguration | Where-Object -FilterScript {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
-            $current[0].Name | Should -Be $configData.AllNodes[0].Name
-            $current[0].Version  | Should -Be $configData.AllNodes[0].Version
+            $current[0].Ensure | Should -Be $configData.AllNodes[0].Ensure
+            
         }
     } # End Describe
     #endregion
