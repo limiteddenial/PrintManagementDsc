@@ -34,7 +34,7 @@ class Printer {
     [System.String] $PermissionSDDL
     
     [DscProperty()]
-    [System.Boolean] $SNMPEnabled = $true
+    [System.Boolean] $SNMPEnabled = $false
 
     [DscProperty()]
     [System.String] $SNMPCommunity = 'public'
