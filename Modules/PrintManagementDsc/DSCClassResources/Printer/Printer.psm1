@@ -10,37 +10,49 @@ enum PortType {
 [DscResource()]
 class Printer {
     [DscProperty(Mandatory)]
-    [Ensure] $Ensure
+    [Ensure]
+    $Ensure
     
     [DscProperty(Key)] 
-    [System.String]$Name
+    [ValidateNotNullOrEmpty()]
+    [System.String]
+    $Name
 
     [DscProperty(Mandatory)]
-    [System.String] $PortName
+    [System.String]
+    $PortName
 
     [DscProperty()]
-    [PortType] $PortType = [PortType]::TCPIP
+    [PortType]
+    $PortType = [PortType]::TCPIP
 
     [DscProperty(Mandatory)]
-    [System.String] $Address
+    [System.String]
+    $Address
 
     [DscProperty(Mandatory)]
-    [System.String] $DriverName
+    [System.String]
+    $DriverName
 
     [DscProperty()]
-    [System.Boolean] $Shared = $true
+    [System.Boolean]
+    $Shared = $true
 
     [DscProperty()]
-    [System.String] $PermissionSDDL
+    [System.String]
+    $PermissionSDDL
     
     [DscProperty()]
-    [System.String] $SNMPCommunity
+    [System.String]
+    $SNMPCommunity
 
     [DscProperty()]
-    [System.UInt32] $SNMPIndex = 0
+    [System.UInt32]
+    $SNMPIndex = 0
 
     [DscProperty()]
-    [System.String] $lprQueueName
+    [System.String]
+    $lprQueueName
 
     hidden $Messages = ""
 
@@ -67,35 +79,35 @@ class Printer {
             [bool]$newPrinter = $false
             [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
-            if($null -eq $printerPort){
+            if($null -eq $printerPort) {
                 switch ($this.PortType) {
                     'PaperCut' {
                         $this.CreatePaperCutPort()
                     } # End PaperCut
                     'LPR' {
-                        $PrinterPortParamaters = @{
+                        $addPrinterPortParams = @{
                             Name = $this.PortName
                             LprHostAddress =  $this.Address
                             LprQueueName = $this.lprQueueName
                             LprByteCounting = $true
                         }
-                        if($null -ne $this.SNMPIndex) {
-                            $PrinterPortParamaters.SNMP = $this.SNMPIndex
-                            $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                        if($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
+                            $addPrinterPortParams.SNMP = $this.SNMPIndex
+                            $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
                         }
-                        Add-PrinterPort @PrinterPortParamaters
+                        Add-PrinterPort @addPrinterPortParams
                     } # End LPR
                     Default {
                         # Default is as Standard TCPIP Port
-                        $PrinterPortParamaters = @{
+                        $addPrinterPortParams = @{
                             Name = $this.PortName
                             PrinterHostAddress =  $this.Address 
                         }
-                        if($null -ne $this.SNMPIndex) {
-                            $PrinterPortParamaters.SNMP = $this.SNMPIndex
-                            $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                        if($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
+                            $addPrinterPortParams.SNMP = $this.SNMPIndex
+                            $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
                         }
-                        Add-PrinterPort @PrinterPortParamaters
+                        Add-PrinterPort @addPrinterPortParams
                     } # End Default
                 } # End Switch PortType
                 $newPrinterPort = $true
@@ -106,18 +118,18 @@ class Printer {
                     Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName,$this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
                     return
                 }
-                $PrinterParamaters = @{
+                $addPrinterParam = @{
                     Name = $this.Name
                     PortName = $this.PortName
                     DriverName = $this.DriverName
                 }
                 if($null -ne $this.PermissionSDDL){
-                    $PrinterParamaters.PermissionSDDL = $this.PermissionSDDL
+                    $addPrinterParam.PermissionSDDL = $this.PermissionSDDL
                 } # End If PermissionSDDL
                 if($null -ne $this.Shared){
-                    $PrinterParamaters.Shared = $this.Shared
+                    $addPrinterParam.Shared = $this.Shared
                 }
-                Add-Printer @PrinterParamaters
+                Add-Printer @addPrinterParam
                 $newPrinter = $true
             } # End If Printer
 
@@ -274,7 +286,7 @@ class Printer {
                             Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address",$this.Address,$printerPort.PrinterHostAddress)
                             $newPrinterPortParamaters.PrinterHostAddress = $this.Address
                         } # End If Address
-                        if($null -ne $this.SNMPIndex){ 
+                        if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)){ 
                             if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
                                 Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPCommunity",$this.SNMPCommunity,$printerPort.SNMPCommunity)
                                 $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
@@ -283,7 +295,9 @@ class Printer {
                                 Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPIndex",$this.SNMPIndex,$printerPort.SNMPIndex)
                                 $newPrinterPortParamaters.SNMPDevIndex = $this.SNMPIndex
                             } # End If SNMPIndex
-                        } # End If SNMP True
+                        } else {
+                            $newPrinterPortParamaters.SNMPEnabled = $false
+                        }# End If SNMP True
                         # If newPrinterPortParamaters has more items than just Name the port needs to be updated with new settings
                         if($newPrinterPortParamaters.count -gt 1){
                             Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $newPrinterPortParamaters -PutType UpdateOnly | Out-Null

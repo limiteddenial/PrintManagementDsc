@@ -88,6 +88,12 @@ try {
             SNMPIndex = 0
             SNMPCommunity = ''
         }
+        $myPrinterPortCIM = @{
+            Protocol = 1 # Port Check for TCPIP
+        } 
+        $myLPRPrinterPortCIM = @{
+            Protocol = 2 # Port Check for LPR
+        } 
 
         $myLPRPrinterPort = $myPrinterPort.clone()
         $myLPRPrinterPort.Name = 'myLPRPrinterPort'
@@ -112,6 +118,12 @@ try {
         }
         $testPaperCutRegistryItemProperty = @{
             HostName = 'papercut.local'
+        }
+
+        $myDriver = @{
+            Name = 'myDriver'
+            PrinterEnvironment = 'Windows x64'
+            MajorVersion = '3'
         }
 
         # End Region
@@ -415,156 +427,121 @@ try {
         }
         Describe 'Set Method'{
             Function Remove-PrintJob { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject ) }
-            Function Remove-PrinterPort{[Cmdletbinding()] param($name)}
-            Function Add-PrinterPort{}
-            Function Remove-PrinterPort {}
+            Function Remove-PrinterPort { [Cmdletbinding()] param($name) }
+            Function Add-PrinterPort { }
+            Function Remove-PrinterPort { }
             Function Set-WmiInstance { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject,$Arguments,$PutType ) }
 
             BeforeEach {
-                Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter {$Name -eq 'myPrinter'}
+                Mock -CommandName Add-Printer -ParameterFilter { $Name -eq 'myPrinter' }
+                Mock -CommandName Add-Printer -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                Mock -CommandName Set-Printer
+                Mock -CommandName Set-Printer -ParameterFilter { $Name -eq 'myPrinter' -and $PortName -eq 'myAbsentPrinterPort' }
+                Mock -CommandName Add-PrinterPort
+
+                Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter {$Name -eq 'myLPRPrinter'}
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter {$Name -eq 'myPaperCutPrinter'}
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter {$Name -eq 'myPrinterSNMP'}
-                Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinter'}
-                Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}
+                Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter {$Name -eq 'myPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter {$Name -eq 'myLPRPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPaperCutPrinterPort } -ParameterFilter {$Name -eq 'myPaperCutPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter {$Name -eq 'myPrinterPortSNMP'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter {$Name -eq 'myBadPortName'}
-    
+                Mock -CommandName Get-PrinterDriver -MockWith { return $myDriver } -ParameterFilter { $Name -eq 'myDriver'}
+                
+                Mock -CommandName Get-PrintJob
+                Mock -CommandName Remove-PrintJob
+
                 Mock -CommandName Get-Item -MockWith { return $testPaperCutRegistryItem } -ParameterFilter { $Path -eq "HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPaperCutPrinterPort"}
                 Mock -CommandName Get-ItemProperty -MockWith { return $testPaperCutRegistryItemProperty }
-            }
-            AfterEach {
-                Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
-            }
-            context 'Ensure Present' {
-                $PrinterResource = [Printer]::new()
-                $PrinterResource.Ensure = [Ensure]::Present
-                $PrinterResource.Name = "newPrinter"
-                $PrinterResource.PortName = "newPrinter"
-                $PrinterResource.Address = "test.local"
-                $PrinterResource.DriverName = "myDriver"
-
+                Mock -CommandName Get-CimInstance -MockWith { return $myPrinterPortCIM } -ParameterFilter { $Query -eq "Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = 'myPrinterPort'"}
+                Mock -CommandName Get-CimInstance -MockWith { return $myLPRPrinterPortCIM } -ParameterFilter { $Query -eq "Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = 'myLPRPrinterPort'"}
                 
-                it 'Add-Printer should be called 1 time' {
-                    Mock -CommandName Get-Printer -MockWith { throw }
-                    Mock -CommandName Add-PrinterPort -MockWith { }
-                    Mock -CommandName Add-Printer -MockWith { }
-                    Mock -CommandName Get-PrinterDriver -MockWith { return $true }
-                    Mock -CommandName Get-WmiObject -MockWith { }
-                    Mock -CommandName Get-CimInstance -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Protocol = 1 # Port Check for TCPIP
-                        } 
-                    }
-                    $PrinterResource.Set()
-                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                Mock -CommandName Invoke-Command
+                Mock -CommandName Restart-Service
+                Mock -CommandName Get-WmiObject
+            } # end beforeeach
+
+            Context 'Ensure Present' {                
+                it 'Should add a new printer and use an existing port' {
+                    $setParams = [Printer]$testPresentParams
+                    $setParams.Name = $testAbsentParams.Name
+
+                    { $setParams.set() } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myPrinterPort' }
                     Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myDriver'}
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter{ $Query -eq "Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = 'myPrinterPort'"}
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 1 -Exactly -Scope It
                 }
-                it 'Add-PrinterPort should be called 1 time' {
-                    Mock -CommandName Get-PrinterPort -MockWith { }
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'newPrinter'
-                            DriverName = 'myDriver'
-                            Shared = [bool]::TrueString
-                            PortName = 'newPrinter'
-                        } 
-                    }
-                    Mock -CommandName Add-PrinterPort -MockWith {}
-                    Mock -CommandName Add-Printer -MockWith { }
-                    Mock -CommandName Set-Printer -MockWith { }
-                    $PrinterResource.Set()
+
+                it 'Should add a new printerPort and re-assign the printer to use it' {
+                    $setParams = [Printer]$testPresentParams
+                    $setParams.PortName = $testAbsentParams.PortName
+                    
+                    { $setParams.set() } | Should -Not -Throw
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myPrinter' -and $PortName -eq 'myAbsentPrinterPort' }
                 }
+
                 it 'PaperCut Port is created' {
-                    $PrinterResource.PortType = 'PaperCut'
-                    Mock -CommandName Get-PrinterPort -MockWith { }
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'newPrinter'
-                            DriverName = 'myDriver'
-                            Shared = [bool]::TrueString
-                            PortName = 'newPrinter'
-                        } 
-                    }
-                    Mock -CommandName Add-PrinterPort -MockWith {}
-                    Mock -CommandName Add-Printer -MockWith { }
-                    Mock -CommandName Set-Printer -MockWith { }
-                    Mock -CommandName Invoke-Command -MockWith { }
-                    Mock -CommandName Restart-Service -MockWith { }
-                    $PrinterResource.Set()
+                    $setParams = [Printer]$testPresentPaperCutParams
+                    $setParams.PortName = $testAbsentParams.PortName
+                    
+                    { $setParams.set() } | Should -Not -Throw
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It                    
                 }
-                it 'Add-PrinterPort and Add-Printer both should be called 1 time' {
-                    $PrinterResource.PortType = 'TCPIP'
-                    Mock -CommandName Get-PrinterPort -MockWith { }
-                    Mock -CommandName Get-Printer -MockWith { }
-                    Mock -CommandName Add-PrinterPort -MockWith { }
-                    Mock -CommandName Add-Printer -MockWith { }
-                    Mock -CommandName Set-Printer -MockWith { }
-                    Mock -CommandName Get-PrinterDriver -MockWith { return $true }
-                    $PrinterResource.Set()
-                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It
+
+                it 'New Printer and PrinterPort should be created' {
+                    $setParams = [Printer]$testPresentParams
+                    $setParams.Name = $testAbsentParams.Name
+                    $setParams.PortName = $testAbsentParams.PortName
+
+                    { $setParams.set() } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
+                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinter' }
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myDriver'}
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
                     Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                 }
-                it 'Add-PrinterPort and Add-Printer both should not called' {
-                    Mock -CommandName Get-PrinterPort -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'newPrinter'
-                            PrinterHostAddress = "test.local"
-                            SNMPENabled = $false
-                        } 
-                    }
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'newPrinter'
-                            DriverName = 'myDriver'
-                            Shared = [bool]::TrueString
-                            PortName = 'newPrinter'
-                        } 
-                    }
-                    Mock -CommandName Get-WmiObject -MockWith { }
-                    Mock -CommandName Add-PrinterPort -MockWith { }
-                    Mock -CommandName Add-Printer -MockWith { }
-                    Mock -CommandName Set-Printer -MockWith { }
-                    Mock -CommandName Get-CimInstance -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Protocol = 1 # Port Check for TCPIP
-                        } 
-                    }
-                    $PrinterResource.Set()
+
+                it 'A Printer and PrinterPort should not be created' {
+                    $setParams = [Printer]$testPresentParams
+
+                    { $setParams.set() } | Should -Not -Throw
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It 
                     Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Add-Printer -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
-                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 0 -Exactly -Scope It -ParameterFilter { $Name -eq 'myDriver'}
                     Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                 }
-            }
-            context 'Ensure Absent' {
+
+            } # end context ensure present
+           <# context 'Ensure Absent' {
                 
                 $PrinterResource = [Printer]::new()
                 $PrinterResource.Ensure = [Ensure]::Absent
@@ -1435,7 +1412,7 @@ try {
                     Assert-MockCalled -CommandName Set-WmiInstance -Times 1 -Exactly -Scope It
                 } # End It Update LPR/TCPIP Port SNMPIndex
             } # End Context Update Port Settings
-        } # End Describe Set Method
+        #>} # End Describe Set Method
     } 
 } finally {
     #region FOOTER
