@@ -1,6 +1,7 @@
 # Change log for PrintManagementDsc Module
 
 ## Unreleased
+
 * Added Unit and Integration tests
 * Changed the default for _SNMPEnabled_ to `$false` for resource _Printer_
 * Changed resource from cPrinterManagement to PrintManagementDsc to meet updated naming convention
