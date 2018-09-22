@@ -374,21 +374,17 @@ class Printer {
                         return $false
                     } # End Address
 
-                    if ($null -ne $this.SNMPIndex){
-                        if ($printerPort.SNMP -ne $true) {
-                            # SNMPIndex was set, SNMP needs to be enabled
-                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMP,$true)
-                            return $false
-                        }
+                    # Since SNMPIndex is always set, and the default is 0. We check to make sure 
+                    if ($this.SNMPIndex -gt 0){
                         if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
                             Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
                             return $false
                         } # End SNMPCommunity
-                        if($this.SNMP -ne $printerPort.SNMPIndex){
+                        if($this.SNMPIndex -ne $printerPort.SNMPIndex){
                             Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
                             return $false
                         } # End SNMPIndex
-                    } # End SNMP
+                    } # End SNMPIndex
 
                     if($this.lprQueueName -ne $printerPort.lprQueueName){
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)

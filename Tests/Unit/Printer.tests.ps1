@@ -151,6 +151,7 @@ try {
                     $testParams.Name = $testPresentParams.Name
 
                     $testParams.test() | Should -Be $false
+                    
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinter'}
                 }
                 it "Test should return false when printer and port is present" {
