@@ -40,6 +40,18 @@ try {
         $testPresentSNMPParams.SNMPCommunity = 'public'
         $testPresentSNMPParams.SNMPIndex = 1
 
+        $testPresentLPRParams = $testPresentParams.clone()
+        $testPresentLPRParams.PortType = 'LPR'
+        $testPresentLPRParams.lprQueueName = 'fake'
+        $testPresentLPRParams.Name = 'myLPRPrinter'
+        $testPresentLPRParams.PortName = 'myLPRPrinterPort'
+
+        $testPresentPaperCutParams = $testPresentParams.clone()
+        $testPresentPaperCutParams.Name = 'myPaperCutPrinter'
+        $testPresentPaperCutParams.PortName ='myPaperCutPrinterPort'
+        $testPresentPaperCutParams.PortType = 'PaperCut'
+        $testPresentPaperCutParams.Address = 'papercut.local'
+
         $testAbsentParams = $testPresentParams.clone()
         $testAbsentParams.Ensure = [Ensure]::Absent
         $testAbsentParams.Name = 'myAbsentPrinter'
@@ -53,6 +65,15 @@ try {
             Shared = 'True'
             PermissionSDDL = 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
         }
+
+        $myLPRPrinter = $myPrinter.clone()
+        $myLPRPrinter.Name = 'myLPRPrinter'
+        $myLPRPrinter.PortName = 'myLPRPrinterPort'
+
+        $myPaperCutPrinter = $myPrinter.clone()
+        $myLPRPrinter.Name = 'myPaperCutPrinter'
+        $myLPRPrinter.PortName = 'myPaperCutPrinterPort'
+
         $myPrinterNoSNMP = $myPrinter.clone()
         $myPrinterNoSNMP.Name = 'myPrinterNoSNMP'
         $myPrinterNoSNMP.PortName = 'myPrinterPortNoSNMP'
@@ -61,19 +82,35 @@ try {
             Name = 'myPrinterPort'
             Description = 'Standard TCP/IP Port'
             PrinterHostAddress = 'printer.local'
-            SNMPEnabled = 0
-            SNMPIndex = 1
-            SNMPCommunity = 'public'
+            SNMPEnabled = $false
+            SNMPIndex = 0
+            SNMPCommunity = ''
         }
+
+        $myLPRPrinterPort = $myPrinterPort.clone()
+        $myLPRPrinterPort.Name = 'myLPRPrinterPort'
+        $myLPRPrinterPort.lprQueueName = 'fake'
+
+        $myPaperCutPrinterPort = $myPrinterPort.clone()
+        $myPaperCutPrinterPort.Name = 'myPaperCutPrinterPort'
+        $myPaperCutPrinterPort.Description = 'PaperCut TCP/IP Port'
+        $myPaperCutPrinterPort.PrinterHostAddress = ''
 
         $myPrinterPortSNMP = $myPrinterPort.clone()
         $myPrinterPortSNMP.Name = 'myPrinterPortSNMP'
-        $myPrinterPortSNMP.SNMPEnabled = 1
+        $myPrinterPortSNMP.SNMPEnabled = $true
         $myPrinterPortSNMP.SNMPCommunity = 'public'
         $myPrinterPortSNMP.SNMPIndex = 1
 
         $myBadPortName = $myPrinterPort.clone()
         $myBadPortName.Name = 'myBadPortName'
+
+        $testPaperCutRegistryItem = @{
+            Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPaperCutPrinterPort'
+        }
+        $testPaperCutRegistryItemProperty = @{
+            HostName = 'papercut.local'
+        }
 
         # End Region
         
@@ -345,12 +382,19 @@ try {
         Describe 'Get Method'{
             BeforeEach {
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter {$Name -eq 'myPrinter'}
+                Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter {$Name -eq 'myLPRPrinter'}
+                Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter {$Name -eq 'myPaperCutPrinter'}
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter {$Name -eq 'myPrinterSNMP'}
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinter'}
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter {$Name -eq 'myPrinterPort'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter {$Name -eq 'myLPRPrinterPort'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myPaperCutPrinterPort } -ParameterFilter {$Name -eq 'myPaperCutPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter {$Name -eq 'myPrinterPortSNMP'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter {$Name -eq 'myBadPortName'}
+
+                Mock -CommandName Get-Item -MockWith { return $testPaperCutRegistryItem } -ParameterFilter { $Path -eq "HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPaperCutPrinterPort"}
+                Mock -CommandName Get-ItemProperty -MockWith { return $testPaperCutRegistryItemProperty }
             }
 
             Context "Get type" {
@@ -383,88 +427,53 @@ try {
 
             Function Get-ItemProperty { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path ) }
             Context "Get Printer Settings" {
-                $PrinterResource = [Printer]::new()
-                $PrinterResource.Ensure = [Ensure]::Present
-                $PrinterResource.Name = "printerExists"
-                $PrinterResource.PortName = "printerExists"
+
                 it 'Should return correct properties for a printer using a RAW port' {
                     $getParams = [Printer]$testPresentParams
 
                     $returnObject = $getParams.Get()
+
                     $returnObject.Ensure | Should -be $testPresentParams.Ensure
                     $returnObject.DriverName | Should -be $testPresentParams.DriverName
                     $returnObject.Shared | Should -be $testPresentParams.Shared
                     $returnObject.PermissionSDDL | Should -be $testPresentParams.PermissionSDDL
                     $returnObject.PortName | Should -be $testPresentParams.PortName
                     $returnObject.Address | Should -be $testPresentParams.Address
-                    $returnObject.SNMPCommunity | Should -be $testPresentParams.SNMPCommunity
-                    $returnObject.SNMPIndex | Should -be $testPresentParams.SNMPIndex 
-                    $returnObject.lprQueueName | Should -be $testPresentParams.lprQueueName
+                    $returnObject.SNMPCommunity | Should -BeNullOrEmpty
+                    $returnObject.SNMPIndex | Should -BeExactly 0 # not enabled always returns 0
+                    $returnObject.lprQueueName | Should -BeNullOrEmpty
                 }
+
                 it 'Should return correct properties for a printer using a LPR port' {
-                    Mock -CommandName Get-Printer -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            DriverName = 'false Driver'
-                            Shared = [bool]::TrueString
-                            PermissionSDDL = 'perms'
-                        } 
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            PrinterHostAddress = 'printer.local'
-                            SNMPEnabled = [bool]::TrueString
-                            SNMPCommunity = 'public'
-                            SNMPIndex = [int]'1'
-                            lprQueueName = 'testqueue'
-                        } 
-                    }
-                    $ReturnedValues = $PrinterResource.Get()
-                    $ReturnedValues.Ensure | Should be 'Present'
-                    $ReturnedValues.DriverName | Should be 'false Driver'
-                    $ReturnedValues.Shared | Should be $true
-                    $ReturnedValues.PermissionSDDL | Should be 'perms'
-                    $ReturnedValues.PortName | Should be 'Exists'
-                    $ReturnedValues.Address | Should be 'printer.local'
-                    $ReturnedValues.SNMPCommunity | Should be 'public'
-                    $ReturnedValues.SNMP | Should be 1
-                    $ReturnedValues.lprQueueName | Should be 'testqueue'
+                    $getParams = [Printer]$testPresentLPRParams
+
+                    $returnObject = $getParams.Get()
+
+                    $returnObject.Ensure | Should -be $testPresentLPRParams.Ensure
+                    $returnObject.DriverName | Should -be $testPresentLPRParams.DriverName
+                    $returnObject.Shared | Should -be $testPresentLPRParams.Shared
+                    $returnObject.PermissionSDDL | Should -be $testPresentLPRParams.PermissionSDDL
+                    $returnObject.PortName | Should -be $testPresentLPRParams.PortName
+                    $returnObject.Address | Should -be $testPresentLPRParams.Address
+                    $returnObject.SNMPCommunity | Should -BeNullOrEmpty
+                    $returnObject.SNMPIndex | Should -BeExactly 0 # not enabled always returns 0
+                    $returnObject.lprQueueName | Should -be $testPresentLPRParams.lprQueueName
                 }
+
                 it 'Should return correct properties for a printer using a Papercut port' {
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            DriverName = 'false Driver'
-                            Shared = [bool]::TrueString
-                            PermissionSDDL = 'perms'
-                        }
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            Description = 'PaperCut TCP/IP Port'
-                        }
-                    }
-                    Mock -CommandName Get-Item -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\Exists'
-                        }
-                    }
-                    Mock -CommandName Get-ItemProperty -MockWith {
-                        [System.Collections.Hashtable]@{
-                            HostName = 'papercut.local'
-                        }
-                    }
-                    $ReturnedValues = $PrinterResource.Get()
-                    $ReturnedValues.Ensure | Should be 'Present'
-                    $ReturnedValues.DriverName | Should be 'false Driver'
-                    $ReturnedValues.Shared | Should be $true
-                    $ReturnedValues.PermissionSDDL | Should be 'perms'
-                    $ReturnedValues.PortName | Should be 'Exists'
-                    $ReturnedValues.Address | Should be 'papercut.local'
-                    $ReturnedValues.SNMPEnabled | Should be $false
-                    $ReturnedValues.lprQueueName | Should be $null
+                    $getParams = [Printer]$testPresentPaperCutParams
+
+                    $returnObject = $getParams.Get()
+
+                    $returnObject.Ensure | Should -Be $testPresentPaperCutParams.Ensure
+                    $returnObject.DriverName | Should -Be $testPresentPaperCutParams.DriverName
+                    $returnObject.Shared | Should -Be $testPresentPaperCutParams.Shared
+                    $returnObject.PermissionSDDL | Should -Be $testPresentPaperCutParams.PermissionSDDL
+                    $returnObject.PortName | Should -Be $testPresentPaperCutParams.PortName
+                    $returnObject.Address | Should -Be $testPresentPaperCutParams.Address
+                    $returnObject.SNMPCommunity | Should -BeNullOrEmpty
+                    $returnObject.SNMPIndex | Should -BeExactly 0 # not enabled always returns 0
+                    $returnObject.lprQueueName | Should -BeNullOrEmpty
                 }
             }
         }

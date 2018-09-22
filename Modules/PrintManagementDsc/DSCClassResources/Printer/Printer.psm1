@@ -34,10 +34,10 @@ class Printer {
     [System.String] $PermissionSDDL
     
     [DscProperty()]
-    [System.String] $SNMPCommunity = 'public'
+    [System.String] $SNMPCommunity
 
     [DscProperty()]
-    [System.UInt32] $SNMPIndex
+    [System.UInt32] $SNMPIndex = 0
 
     [DscProperty()]
     [System.String] $lprQueueName
@@ -440,7 +440,7 @@ class Printer {
                 "PaperCut TCP/IP Port" {  
                     try {
                         #To get Papercut address you need to look at the registry key
-                        $ReturnObject.Address = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
+                        $ReturnObject.Address = (Get-Item -Path ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
                     } catch {
                         $ReturnObject.Address = $null
                     }
