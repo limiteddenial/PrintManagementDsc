@@ -34,13 +34,10 @@ class Printer {
     [System.String] $PermissionSDDL
     
     [DscProperty()]
-    [System.Boolean] $SNMPEnabled = $false
-
-    [DscProperty()]
     [System.String] $SNMPCommunity = 'public'
 
     [DscProperty()]
-    [System.UInt32] $SNMPIndex = 1
+    [System.UInt32] $SNMPIndex
 
     [DscProperty()]
     [System.String] $lprQueueName
@@ -82,10 +79,9 @@ class Printer {
                             LprQueueName = $this.lprQueueName
                             LprByteCounting = $true
                         }
-                        if($this.SNMPEnabled -eq $true) {
-                            $PrinterPortParamaters.SNMP = $this.SNMPEnabled
+                        if($null -ne $this.SNMPIndex) {
+                            $PrinterPortParamaters.SNMP = $this.SNMPIndex
                             $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
-                            $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
                         Add-PrinterPort @PrinterPortParamaters
                     } # End LPR
@@ -95,10 +91,9 @@ class Printer {
                             Name = $this.PortName
                             PrinterHostAddress =  $this.Address 
                         }
-                        if($this.SNMPEnabled -eq $true) {
-                            $PrinterPortParamaters.SNMP = $this.SNMPEnabled
+                        if($null -ne $this.SNMPIndex) {
+                            $PrinterPortParamaters.SNMP = $this.SNMPIndex
                             $PrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
-                            $PrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                         }
                         Add-PrinterPort @PrinterPortParamaters
                     } # End Default
@@ -178,10 +173,9 @@ class Printer {
                             $newPrinterPortParamaters = @{
                                 Name = $this.PortName
                             }
-                            if($this.SNMPEnabled -eq $true) {
-                                $newPrinterPortParamaters.SNMP = $this.SNMPEnabled
+                            if($null -ne $this.SNMPIndex) {
+                                $newPrinterPortParamaters.SNMP = $this.SNMPIndex
                                 $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
-                                $newPrinterPortParamaters.SNMPIndex = $this.SNMPIndex
                             }
                             switch ($this.PortType) {
                                 'LPR' {
@@ -280,11 +274,7 @@ class Printer {
                             Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address",$this.Address,$printerPort.PrinterHostAddress)
                             $newPrinterPortParamaters.PrinterHostAddress = $this.Address
                         } # End If Address
-                        if($this.SNMPEnabled -ne $printerPort.SNMPEnabled){
-                            Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPEnabled",$this.SNMPEnabled,$printerPort.SNMPEnabled)
-                            $newPrinterPortParamaters.SNMPEnabled = $this.SNMPEnabled
-                        } # End If SNMPEnabled
-                        if($this.SNMPEnabled -eq $true){ 
+                        if($null -ne $this.SNMPIndex){ 
                             if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
                                 Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPCommunity",$this.SNMPCommunity,$printerPort.SNMPCommunity)
                                 $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
@@ -293,7 +283,7 @@ class Printer {
                                 Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPIndex",$this.SNMPIndex,$printerPort.SNMPIndex)
                                 $newPrinterPortParamaters.SNMPDevIndex = $this.SNMPIndex
                             } # End If SNMPIndex
-                        } # End If SNMPEnabled True
+                        } # End If SNMP True
                         # If newPrinterPortParamaters has more items than just Name the port needs to be updated with new settings
                         if($newPrinterPortParamaters.count -gt 1){
                             Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $newPrinterPortParamaters -PutType UpdateOnly | Out-Null
@@ -379,28 +369,32 @@ class Printer {
                     } # End Address
                 } # End PaperCut TCP/IP Port
                 Default {
-                    if($this.Address -ne $printerPort.PrinterHostAddress){
+                    if ($this.Address -ne $printerPort.PrinterHostAddress){
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Address",$printerPort.PrinterHostAddress,$this.Address)
                         return $false
                     } # End Address
-                    if($this.SNMPEnabled -ne [System.Convert]::ToBoolean($printerPort.SNMPEnabled)){
-                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMPEnabled,$this.SNMPEnabled)
-                        return $false
-                    } # End SNMPEnabled
-                    if($this.SNMPEnabled -eq $true){ 
+
+                    if ($null -ne $this.SNMPIndex){
+                        if ($printerPort.SNMP -ne $true) {
+                            # SNMPIndex was set, SNMP needs to be enabled
+                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPEnabled",$printer.SNMP,$true)
+                            return $false
+                        }
                         if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
                             Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
                             return $false
                         } # End SNMPCommunity
-                        if($this.SNMPIndex -ne $printerPort.SNMPIndex){
+                        if($this.SNMP -ne $printerPort.SNMPIndex){
                             Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
                             return $false
                         } # End SNMPIndex
-                    } # End SNMPEnabled True
+                    } # End SNMP
+
                     if($this.lprQueueName -ne $printerPort.lprQueueName){
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)
                         return $false
                     } # End lprQueueName
+
                 } # End Default
             } # End Switch
             # All the conditions have been met so we will return true so the set() method doesn't get called as everyting is in a desired state. 
@@ -431,7 +425,7 @@ class Printer {
         } catch {
             $ReturnObject.Ensure = [Ensure]::Absent
             return $ReturnObject
-        } 
+        }
         # Both the printer and the printer port were found so we are going to set Ensure to Present
         $ReturnObject.Ensure = [Ensure]::Present
         if($null -ne $printer){ 
@@ -451,16 +445,14 @@ class Printer {
                         $ReturnObject.Address = $null
                     }
                     #SNMP is disabled on papercut ports
-                    $ReturnObject.SNMPEnabled = $false
-                    $ReturnObject.SNMPCommunity = $null
                     $ReturnObject.SNMPIndex = $null
+                    $ReturnObject.SNMPCommunity = $null
                     $ReturnObject.PortType = [PortType]::PaperCut
                 } # End PaperCut TCP/IP Port
                 Default {
                     $ReturnObject.Address = $printerPort.PrinterHostAddress
-                    $ReturnObject.SNMPEnabled = $printerPort.SNMPEnabled
-                    $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
                     $ReturnObject.SNMPIndex = $printerPort.SNMPIndex
+                    $ReturnObject.SNMPCommunity = $printerPort.SNMPCommunity
                     $ReturnObject.PortType = [PortType]::TCPIP
                     if($printerPort.lprQueueName){
                         $ReturnObject.lprQueueName = $printerPort.lprQueueName

@@ -1,3 +1,6 @@
+[cmdletbinding()]
+Param()
+
 $Global:ModuleName = 'PrintManagementDsc'
 $Global:DscResourceName = 'Printer'
 
@@ -18,10 +21,9 @@ $TestEnvironment = Initialize-TestEnvironment `
 -TestType Unit `
 -ResourceType Class
 #endregion HEADER
-
+$VerbosePreference = "Continue"
 # Begin Testing
 try {
-
     #region Pester Tests
     InModuleScope -ModuleName $Global:DscResourceName  {
         $testPresentParams = @{
@@ -30,15 +32,18 @@ try {
             PortName = 'myPrinterPort'
             DriverName = 'myDriver'
             PortType = 'TCPIP'
-            Address = 'myPrinterAddress.local'
+            Address = 'printer.local'
             Shared = $true
-            PermissionSDDL = 'fakeperms'
-            SNMPEnabled = $true
-            SNMPCommunity = 'public'
-            SNMPIndex = 1
+            PermissionSDDL = 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
         }
+        $testPresentSNMPParams = $testPresentParams.clone()
+        $testPresentSNMPParams.SNMPCommunity = 'public'
+        $testPresentSNMPParams.SNMPIndex = 1
+
         $testAbsentParams = $testPresentParams.clone()
         $testAbsentParams.Ensure = [Ensure]::Absent
+        $testAbsentParams.Name = 'myAbsentPrinter'
+        $testAbsentParams.PortName = 'myAbsentPrinterPort'
 
         # Region Mock Returns
         $myPrinter = @{
@@ -46,7 +51,7 @@ try {
             PortName = 'myPrinterPort'
             DriverName = 'myDriver'
             Shared = 'True'
-            PermissionSDDL = 'fakeperms'
+            PermissionSDDL = 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
         }
         $myPrinterNoSNMP = $myPrinter.clone()
         $myPrinterNoSNMP.Name = 'myPrinterNoSNMP'
@@ -55,115 +60,107 @@ try {
         $myPrinterPort = @{
             Name = 'myPrinterPort'
             Description = 'Standard TCP/IP Port'
-            PrinterHostAddress = 'myPrinterAddress.local'
-            SNMPEnabled = 'True'
+            PrinterHostAddress = 'printer.local'
+            SNMPEnabled = 0
+            SNMPIndex = 1
             SNMPCommunity = 'public'
-            SNMPIndex = '1'
         }
+
+        $myPrinterPortSNMP = $myPrinterPort.clone()
+        $myPrinterPortSNMP.Name = 'myPrinterPortSNMP'
+        $myPrinterPortSNMP.SNMPEnabled = 1
+        $myPrinterPortSNMP.SNMPCommunity = 'public'
+        $myPrinterPortSNMP.SNMPIndex = 1
+
         $myBadPortName = $myPrinterPort.clone()
         $myBadPortName.Name = 'myBadPortName'
-        $myPrinterPortNoSNMP = $myPrinterPort.clone()
-        $myPrinterPortNoSNMP.Name = 'myPrinterPortNoSNMP'
-        $myPrinterPortNoSNMP.SNMPEnabled = 'False'
+
         # End Region
         
         Describe 'Test Method'{
             BeforeEach {
-                Mock -CommandName Write-Verbose
+                #Mock -CommandName Write-Verbose
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter {$Name -eq 'myPrinter'}
-                Mock -CommandName Get-Printer -MockWith { return $myPrinterNoSNMP } -ParameterFilter {$Name -eq 'myPrinterNoSNMP'}
+                Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter {$Name -eq 'myPrinterSNMP'}
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinter'}
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter {$Name -eq 'myPrinterPort'}
-                Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortNoSNMP } -ParameterFilter {$Name -eq 'myPrinterPortNoSNMP'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter {$Name -eq 'myPrinterPortSNMP'}
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter {$Name -eq 'myBadPortName'}
             }
             AfterEach {
-                Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
-            }      
+                
+            }
+
             Context 'Type Test' { 
                 it 'Test should return a bool' {
                     $testParams = [Printer]$testPresentParams
+
                     $testParams.test() | Should -BeOfType bool
                 }
             }
+
             Context 'Ensure Absent' {
                 it 'Test should return true when printer is absent' {
                     $testParams = [Printer]$testAbsentParams
-                    $testParams.Name = 'myAbsentPrinter'
-                    $testParams.PortName = 'myAbsentPrinterPort'
 
                     $testParams.test() | should be $true
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinter'}
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}
                 }
                 it "Test should return false when printer is present" {
                     $testParams = [Printer]$testAbsentParams
-                    $testParams.PortName = 'myAbsentPrinterPort'
+                    $testParams.Name = $testPresentParams.Name
 
-                    $testParams.test() | should be $false
+                    $testParams.test() | Should -Be $false
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinter'}
                 }
                 it "Test should return false when printer and port is present" {
                     $testParams = [Printer]$testAbsentParams
+                    $testParams.Name = $testPresentParams.Name
+                    $testParams.PortName = $testPresentParams.PortName
 
-                    $testParams.test() | should be $false
+                    $testParams.test() | Should -Be $false
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinter'}
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinterPort'}
                 }
                 it "Test should return false when printer is absent and the printer port is present" {
                     $testParams = [Printer]$testAbsentParams
-                    $testParams.Name = 'myAbsentPrinter'
+                    $testParams.PortName = $testPresentParams.PortName
                     
                     $testParams.test() | should be $false
+
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinter'}
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinterPort'}
                 }
             }
+
             Context 'Ensure Present' {
-                $PrinterResource = [Printer]::new()
-                $PrinterResource.Ensure = [Ensure]::Present
-                $PrinterResource.Name = "printerExists"
-                $PrinterResource.PortName = "printerExists"
-                
                 it 'Test should return true when printer is present' {
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                            PortName = 'printerExists'
-                            Shared = $true
-                        }
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                            SNMPEnabled = $false
-                        }
-                    }
-                    $PrinterResource.Shared = $true
-                    $PrinterResource.SNMPEnabled = $false
-                    $PrinterResource.test() | should be $true
+                    $testParams = [Printer]$testPresentParams
+                    
+                    $testParams.test() | Should -Be $true
                 }
                 it 'Test should return false when printer is present and port is absent' {
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                            PortName = 'printerExists'
-                        }
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith { throw }
-                    $PrinterResource.test() | should be $false
+                    $testParams = [Printer]$testPresentParams
+                    $testparams.PortName = 'myBadPortName'
+
+                    $testParams.test() | should be $false
+
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myBadPortName'}
                 }
                 it 'Test should return false when printer is absent and the port is present' {
-                    Mock -CommandName Get-Printer -MockWith { }
-                    Mock -CommandName Get-PrinterPort -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                        }
-                    } 
-                    $PrinterResource.test() | should be $false
+                    $testParams = [Printer]$testPresentParams
+                    $testparams.Name = 'myAbsentPrinter'
+
+                    $testParams.test() | should be $false
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinter'}
                 }
             }
+
             Function Get-ItemProperty { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path ) }
             Context 'Ensure Correct Settings' {
                 $PrinterResource = [Printer]::new()
@@ -190,11 +187,13 @@ try {
                 }
                 it 'Test should return true when all printer settings are correct' {
                     $testparams = [Printer]$testPresentParams
+
                     $testparams.test() | Should -be $true
                 }
                 it 'Test should return false when PortName is incorrect' {
                     $testparams = [Printer]$testPresentParams
                     $testparams.PortName = 'myBadPortName'
+
                     $testparams.test() | Should -be $false
                     
                     Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myBadPortName'}   
@@ -218,19 +217,12 @@ try {
    
                     $testparams.test() | Should be $false
                 }
-                it 'Test should return false when the printer has incorrect SNMPEnabled settings' {
-                    $testparams = [Printer]$testPresentParams
-                    $testparams.SNMPEnabled = $false
-                    
-                    $testparams.test() | Should be $false
-                }
                 it 'Test should return true when the printer has incorrect SNMP settings but SNMPEnabled is set to false' {
                     $testparams = [Printer]$testPresentParams
                     $testparams.Name = 'myPrinterNoSNMP'
                     $testparams.PortName = 'myPrinterPortNoSNMP'
-                    $testparams.SNMPEnabled = $false
                     $testparams.SNMPCommunity = 'private'
-                    $testparams.SNMPIndex = '12'
+                    $testparams.SNMP = '12'
 
                     $testparams.test() | Should be $true
                     Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myPrinterNoSNMP'}
@@ -242,9 +234,9 @@ try {
 
                     $testparams.test() | Should be $false
                 }
-                it 'Test should return false when the printer has incorrect SNMPIndex settings' {
+                it 'Test should return false when the printer has incorrect SNMP setting' {
                     $testparams = [Printer]$testPresentParams
-                    $testparams.SNMPIndex = '123'
+                    $testparams.SNMP = '123'
 
                     $testparams.test() | Should be $false
                 }
@@ -263,9 +255,8 @@ try {
                     $PrinterResource.Address = 'printer.local'
                     $PrinterResource.DriverName = 'false Driver'
                     $PrinterResource.PermissionSDDL = 'perms'
-                    $PrinterResource.SNMPEnabled = $true
                     $PrinterResource.SNMPCommunity = "public"
-                    $PrinterResource.SNMPIndex = '1'
+                    $PrinterResource.SNMP = '1'
                     $PrinterResource.lprQueueName = "lpr"
                     $PrinterResource.test() | Should be $false
                 }
@@ -284,9 +275,8 @@ try {
                     $PrinterResource.Address = 'printer.local'
                     $PrinterResource.DriverName = 'false Driver'
                     $PrinterResource.PermissionSDDL = 'perms'
-                    $PrinterResource.SNMPEnabled = $true
                     $PrinterResource.SNMPCommunity = "public"
-                    $PrinterResource.SNMPIndex = '1'
+                    $PrinterResource.SNMP = '1'
                     $PrinterResource.lprQueueName = "lpr"
                     $PrinterResource.test() | Should be $true
                 }
@@ -305,9 +295,8 @@ try {
                     $PrinterResource.Address = 'incorrect.local'
                     $PrinterResource.DriverName = 'false Driver'
                     $PrinterResource.PermissionSDDL = 'perms'
-                    $PrinterResource.SNMPEnabled = $true
                     $PrinterResource.SNMPCommunity = "public"
-                    $PrinterResource.SNMPIndex = '1'
+                    $PrinterResource.SNMP = '1'
                     $PrinterResource.lprQueueName = "lpr"
                     $PrinterResource.test() | Should be $False
                 }
@@ -325,9 +314,8 @@ try {
                     $PrinterResource.Address = 'incorrect.local'
                     $PrinterResource.DriverName = 'false Driver'
                     $PrinterResource.PermissionSDDL = 'perms'
-                    $PrinterResource.SNMPEnabled = $true
                     $PrinterResource.SNMPCommunity = "public"
-                    $PrinterResource.SNMPIndex = '1'
+                    $PrinterResource.SNMP = '1'
                     $PrinterResource.test() | Should be $False
                 }
                 it 'Test should return false when printer has the incorrect Address set for a PaperCut Port' {
@@ -355,76 +343,63 @@ try {
             }
         }
         Describe 'Get Method'{
-            context "Get type" {
-                $PrinterResource = [Printer]::new()
-                $PrinterResource.Ensure = [Ensure]::Present
-                $PrinterResource.Name = "printerExists"
-                $PrinterResource.PortName = "printerExists"
-                
-                it 'Get should return Printer object' {
-                    Mock -CommandName Get-Printer -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                        }
-                    }
-                    $PrinterResource.Get().GetType().Name | Should Be 'Printer'
-                }
+            BeforeEach {
+                Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter {$Name -eq 'myPrinter'}
+                Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter {$Name -eq 'myPrinterSNMP'}
+                Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinter'}
+                Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter {$Name -eq 'myPrinterPort'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter {$Name -eq 'myPrinterPortSNMP'}
+                Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter {$Name -eq 'myBadPortName'}
             }
-            context "Get Enusre Absent" {
-                $PrinterResource = [Printer]::new()
-                $PrinterResource.Ensure = [Ensure]::Present
-                $PrinterResource.Name = "printerExists"
-                $PrinterResource.PortName = "printerExists"
 
-                it 'Get should return Absent if the printer does not exist' {
-                    Mock -CommandName Get-Printer -MockWith { throw }
-                    $PrinterResource.Get().Ensure | Should be 'Absent'
-                }
-                it 'Get should return Absent if the printerPort does not exist' {
-                    Mock -CommandName Get-Printer -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'printerExists'
-                        } 
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith { throw }
-                    $PrinterResource.Get().Ensure | Should be 'Absent'
-                }
-            }
+            Context "Get type" {
+                it 'Get should return Printer object' {
+                    $getParams = [Printer]$testPresentParams
+
+                    $getParams.Get().GetType().Name | Should -Be 'Printer'
+                } # End it
+            } # End Context Get type
+
+            Context "Get Ensure Absent" {
+                It 'Get should return Absent if the printer does not exist' {
+                    $getParams = [Printer]$testAbsentParams
+
+                    $getParams.Get().Ensure | Should -be 'Absent'
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinter'}
+                } # End It
+
+                It 'Get should return Absent if the printerPort does not exist' {
+                    $getParams = [Printer]$testAbsentParams
+                    $getParams.Name = $testPresentParams.Name
+
+                    $getParams.Get().Ensure | Should -be 'Absent'
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq $testPresentParams.Name}
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq $testAbsentParams.PortName}
+                } # End It
+            } # End Context Get Ensure Absent
+
             Function Get-ItemProperty { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path ) }
-            context "Get Printer Settings" {
+            Context "Get Printer Settings" {
                 $PrinterResource = [Printer]::new()
                 $PrinterResource.Ensure = [Ensure]::Present
                 $PrinterResource.Name = "printerExists"
                 $PrinterResource.PortName = "printerExists"
                 it 'Should return correct properties for a printer using a RAW port' {
-                    Mock -CommandName Get-Printer -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            DriverName = 'false Driver'
-                            Shared = [bool]::TrueString
-                            PermissionSDDL = 'perms'
-                        } 
-                    }
-                    Mock -CommandName Get-PrinterPort -MockWith { 
-                        [System.Collections.Hashtable]@{
-                            Name = 'Exists'
-                            PrinterHostAddress = 'printer.local'
-                            SNMPEnabled = [bool]::TrueString
-                            SNMPCommunity = 'public'
-                            SNMPIndex = [int]'1'
-                        } 
-                    }
-                    $ReturnedValues = $PrinterResource.Get()
-                    $ReturnedValues.Ensure | Should be 'Present'
-                    $ReturnedValues.DriverName | Should be 'false Driver'
-                    $ReturnedValues.Shared | Should be $true
-                    $ReturnedValues.PermissionSDDL | Should be 'perms'
-                    $ReturnedValues.PortName | Should be 'Exists'
-                    $ReturnedValues.Address | Should be 'printer.local'
-                    $ReturnedValues.SNMPEnabled | Should be $true
-                    $ReturnedValues.SNMPCommunity | Should be 'public'
-                    $ReturnedValues.SNMPIndex | Should be 1
-                    $ReturnedValues.lprQueueName | Should be $null
+                    $getParams = [Printer]$testPresentParams
+
+                    $returnObject = $getParams.Get()
+                    $returnObject.Ensure | Should -be $testPresentParams.Ensure
+                    $returnObject.DriverName | Should -be $testPresentParams.DriverName
+                    $returnObject.Shared | Should -be $testPresentParams.Shared
+                    $returnObject.PermissionSDDL | Should -be $testPresentParams.PermissionSDDL
+                    $returnObject.PortName | Should -be $testPresentParams.PortName
+                    $returnObject.Address | Should -be $testPresentParams.Address
+                    $returnObject.SNMPCommunity | Should -be $testPresentParams.SNMPCommunity
+                    $returnObject.SNMPIndex | Should -be $testPresentParams.SNMPIndex 
+                    $returnObject.lprQueueName | Should -be $testPresentParams.lprQueueName
                 }
                 it 'Should return correct properties for a printer using a LPR port' {
                     Mock -CommandName Get-Printer -MockWith { 
@@ -452,9 +427,8 @@ try {
                     $ReturnedValues.PermissionSDDL | Should be 'perms'
                     $ReturnedValues.PortName | Should be 'Exists'
                     $ReturnedValues.Address | Should be 'printer.local'
-                    $ReturnedValues.SNMPEnabled | Should be $true
                     $ReturnedValues.SNMPCommunity | Should be 'public'
-                    $ReturnedValues.SNMPIndex | Should be 1
+                    $ReturnedValues.SNMP | Should be 1
                     $ReturnedValues.lprQueueName | Should be 'testqueue'
                 }
                 it 'Should return correct properties for a printer using a Papercut port' {
@@ -500,6 +474,13 @@ try {
             Function Add-PrinterPort{}
             Function Remove-PrinterPort {}
             Function Set-WmiInstance { [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject,$Arguments,$PutType ) }
+
+            BeforeEach {
+                Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter {$Name -eq 'myPrinterPort'}
+            }
+            AfterEach {
+                Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It
+            }
             context 'Ensure Present' {
                 $PrinterResource = [Printer]::new()
                 $PrinterResource.Ensure = [Ensure]::Present
@@ -507,17 +488,10 @@ try {
                 $PrinterResource.PortName = "newPrinter"
                 $PrinterResource.Address = "test.local"
                 $PrinterResource.DriverName = "myDriver"
-                $PrinterResource.SNMPEnabled = $false
+
                 
                 it 'Add-Printer should be called 1 time' {
-                    Mock -CommandName Get-Printer -MockWith { }
-                    Mock -CommandName Get-PrinterPort -MockWith {
-                        [System.Collections.Hashtable]@{
-                            Name = 'newPrinter'
-                            PrinterHostAddress = "test.local"
-                            SNMPENabled = $false
-                        }
-                    }
+                    Mock -CommandName Get-Printer -MockWith { throw }
                     Mock -CommandName Add-PrinterPort -MockWith { }
                     Mock -CommandName Add-Printer -MockWith { }
                     Mock -CommandName Get-PrinterDriver -MockWith { return $true }
@@ -1455,7 +1429,7 @@ try {
                 } # End It Update LPR/TCPIP Port SNMPCommunity
                 it 'Update LPR/TCPIP Port SNMPIndex' {
                     $PrinterResource.PortType = 'LPR'
-                    $PrinterResource.SNMPIndex = 1
+                    $PrinterResource.SNMP = 1
                     Mock -CommandName Get-PrinterPort -MockWith { 
                         [System.Collections.Hashtable]@{
                             Name = $this.PortName
