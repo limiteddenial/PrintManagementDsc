@@ -330,11 +330,11 @@ class Printer {
         }
         if($this.Ensure -eq [Ensure]::Present){
             # region test current printer settings
-            if($null -eq $printer){
+            if ($null -eq $printer){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Ensure","Absent",$this.Ensure)
                 return $false
             } # End Printer
-            if($null -eq $printerPort){
+            if ($null -eq $printerPort){
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PrinterPort","Absent",$this.Ensure)
                 return $false
             } # End PrinterPort
@@ -375,19 +375,19 @@ class Printer {
                     } # End Address
 
                     # Since SNMPIndex is always set, and the default is 0. We check to make sure 
-                    if ($this.SNMPIndex -gt 0){
+                    if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)){
                         if($this.SNMPCommunity -ne $printerPort.SNMPCommunity){
-                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printer.SNMPCommunity,$this.SNMPCommunity)
+                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity",$printerPort.SNMPCommunity,$this.SNMPCommunity)
                             return $false
                         } # End SNMPCommunity
                         if($this.SNMPIndex -ne $printerPort.SNMPIndex){
-                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printer.SNMPIndex,$this.SNMPIndex)
+                            Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPIndex",$printerPort.SNMPIndex,$this.SNMPIndex)
                             return $false
                         } # End SNMPIndex
                     } # End SNMPIndex
 
                     if($this.lprQueueName -ne $printerPort.lprQueueName){
-                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printer.lprQueueName,$this.lprQueueName)
+                        Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName",$printerPort.lprQueueName,$this.lprQueueName)
                         return $false
                     } # End lprQueueName
 
