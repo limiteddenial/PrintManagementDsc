@@ -137,7 +137,7 @@ class Printer {
 
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
             if ($newPrinter -eq $false) {
-                $UpdatePrinterParamaters = @{
+                $UpdatePrinterParams = @{
                     Name = $this.Name
                     # This will get populated if any settings are not correct
                 }
@@ -148,26 +148,26 @@ class Printer {
                         return
                     } # End If Print Driver
                     # Updating variable to notify that the driver needs to be updated
-                    $UpdatePrinterParamaters.DriverName = $this.DriverName
+                    $UpdatePrinterParams.DriverName = $this.DriverName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'DriverName', $this.DriverName, $printer.DriverName)
                 } # End If DriverName
                 if ($printer.Shared -ne $this.Shared) {
-                    $UpdatePrinterParamaters.Shared = $this.Shared
+                    $UpdatePrinterParams.Shared = $this.Shared
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Shared', $this.Shared, $printer.Shared)
                 } # End If Shared
                 if ($null -ne $this.PermissionSDDL -and $printer.PermissionSDDL -ne $this.PermissionSDDL) {
-                    $UpdatePrinterParamaters.PermissionSDDL = $this.PermissionSDDL
+                    $UpdatePrinterParams.PermissionSDDL = $this.PermissionSDDL
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PermissionSDDL', $this.PermissionSDDL, $printer.PermissionSDDL)
                 } # End If PermissionSDDL
                 if ($printer.PortName -ne $this.PortName) {
-                    $UpdatePrinterParamaters.PortName = $this.PortName
+                    $UpdatePrinterParams.PortName = $this.PortName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PortName', $this.PortName, $printer.PortName)
                     # To make changes we need to make sure there are no jobs queued up on the printer
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If PrinterPort
-                if ($UpdatePrinterParamaters.count -gt 1) {
-                    Set-Printer @UpdatePrinterParamaters
-                } # End If UpdatePrinterParamaters
+                if ($UpdatePrinterParams.count -gt 1) {
+                    Set-Printer @UpdatePrinterParams
+                } # End If UpdatePrinterParams
             } # End If NewPrinter
 
             # If the printerPort already existed the settings need to be checked. Otherwise the printer was just created with specified settings
@@ -184,52 +184,52 @@ class Printer {
                             Remove-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP$([char]0x002f)IP Port\Ports\{0}" -f $this.PortName)
                             # To take effect the spooler needs to be rebooted
                             Restart-Service -Name "Spooler" -Force
-                            $newPrinterPortParamaters = @{
+                            $newPrinterPortParams = @{
                                 Name = $this.PortName
                             }
                             if ($null -ne $this.SNMPIndex) {
-                                $newPrinterPortParamaters.SNMP = $this.SNMPIndex
-                                $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                                $newPrinterPortParams.SNMP = $this.SNMPIndex
+                                $newPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
                             }
                             switch ($this.PortType) {
                                 'LPR' {
-                                    $newPrinterPortParamaters.LprHostAddress = $this.Address
-                                    $newPrinterPortParamaters.LprQueueName = $this.lprQueueName
-                                    $newPrinterPortParamaters.LprByteCounting = $true
+                                    $newPrinterPortParams.LprHostAddress = $this.Address
+                                    $newPrinterPortParams.LprQueueName = $this.lprQueueName
+                                    $newPrinterPortParams.LprByteCounting = $true
                                 } # End LPR
                                 'TCPIP' {
-                                    $newPrinterPortParamaters.PrinterHostAddress = $this.Address 
+                                    $newPrinterPortParams.PrinterHostAddress = $this.Address 
                                 } # End TCPIP
                             } # End Switch this.PortType
-                            Add-PrinterPort @newPrinterPortParamaters
-                            $updatePrinterParamaters = @{
+                            Add-PrinterPort @newPrinterPortParams
+                            $updatePrinterParams = @{
                                 Name     = $this.Name
                                 PortName = $this.PortName
                             }
                             # Changing the printer to use the new port
-                            Set-Printer @updatePrinterParamaters
+                            Set-Printer @updatePrinterParams
                             # To clean up we will remove the temp printer port
                             Remove-PrinterPort -Name $tempPort
                         } # End Papercut
                         'LPR' {
                             switch ($this.PortType) {
                                 'TCPIP' {
-                                    $UpdatePortParamaters = @{
+                                    $UpdatePortParams = @{
                                         Protocol   = 1
                                         PortNumber = 9100
                                     }
                                     # Need to Use WMI as CIM has the objects as read only
-                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParamaters -PutType UpdateOnly | Out-Null
+                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParams -PutType UpdateOnly | Out-Null
                                 } # End TCPIP
                                 'PaperCut' {
                                     $tempPort = $this.UseTempPort()
                                     Remove-PrinterPort -Name $this.PortName
                                     $this.CreatePaperCutPort()
-                                    $updatePrinterParamaters = @{
+                                    $updatePrinterParams = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
                                     }  
-                                    Set-Printer @updatePrinterParamaters
+                                    Set-Printer @updatePrinterParams
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
                                 } # End PaperCut
@@ -238,22 +238,22 @@ class Printer {
                         'TCPIP' {
                             switch ($this.PortType) {
                                 'LPR' {
-                                    $UpdatePortParamaters = @{
+                                    $UpdatePortParams = @{
                                         Protocol = 2
                                         Queue    = $this.lprQueueName
                                     }
                                     # Need to Use WMI as CIM has the objects as read only
-                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParamaters -PutType UpdateOnly | Out-Null
+                                    Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $UpdatePortParams -PutType UpdateOnly | Out-Null
                                 } # End LPR
                                 'PaperCut' {
                                     $tempPort = $this.UseTempPort()
                                     Remove-PrinterPort -Name $this.PortName
                                     $this.CreatePaperCutPort()
-                                    $updatePrinterParamaters = @{
+                                    $updatePrinterParams = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
                                     }  
-                                    Set-Printer @updatePrinterParamaters
+                                    Set-Printer @updatePrinterParams
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
                                 } # End PaperCut
@@ -281,34 +281,34 @@ class Printer {
                             } # End Address
                         } # End PaperCut
                         Default {
-                            $newPrinterPortParamaters = @{
+                            $newPrinterPortParams = @{
                                 Name = $this.PortName
-                            } # End newPrinterPortParamaters
+                            } # End newPrinterPortParams
                             if ($currentPortType -eq 'LPR' -and $printerPort.lprQueueName -ne $this.lprQueueName) {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "lprQueueName", $this.lprQueueName, $printerPort.lprQueueName)
-                                $newPrinterPortParamaters.lprQueueName = $this.lprQueueName
+                                $newPrinterPortParams.lprQueueName = $this.lprQueueName
                             } # End If LprQueuename
                             if ($this.Address -ne $printerPort.PrinterHostAddress) {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address", $this.Address, $printerPort.PrinterHostAddress)
-                                $newPrinterPortParamaters.PrinterHostAddress = $this.Address
+                                $newPrinterPortParams.PrinterHostAddress = $this.Address
                             } # End If Address
                             if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) { 
                                 if ($this.SNMPCommunity -ne $printerPort.SNMPCommunity) {
                                     Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPCommunity", $this.SNMPCommunity, $printerPort.SNMPCommunity)
-                                    $newPrinterPortParamaters.SNMPCommunity = $this.SNMPCommunity
+                                    $newPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
                                 } # End If SNMPCommunity
                                 if ($this.SNMPIndex -ne $printerPort.SNMPIndex) {
                                     Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPIndex", $this.SNMPIndex, $printerPort.SNMPIndex)
-                                    $newPrinterPortParamaters.SNMPDevIndex = $this.SNMPIndex
+                                    $newPrinterPortParams.SNMPDevIndex = $this.SNMPIndex
                                 } # End If SNMPIndex
                             }
                             else {
-                                $newPrinterPortParamaters.SNMPEnabled = $false
+                                $newPrinterPortParams.SNMPEnabled = $false
                             }# End If SNMP True
-                            # If newPrinterPortParamaters has more items than just Name the port needs to be updated with new settings
-                            if ($newPrinterPortParamaters.count -gt 1) {
-                                Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $newPrinterPortParamaters -PutType UpdateOnly | Out-Null
-                            } # End If newPrinterPortParamaters.Count
+                            # If newPrinterPortParams has more items than just Name the port needs to be updated with new settings
+                            if ($newPrinterPortParams.count -gt 1) {
+                                Get-WmiObject -Query ("Select * FROM Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName ) | Set-WmiInstance -Arguments $newPrinterPortParams -PutType UpdateOnly | Out-Null
+                            } # End If newPrinterPortParams.Count
                         } # End Default
                     } # End Switch $currentPortType
                 } # end if curreentPortType
@@ -316,11 +316,11 @@ class Printer {
         }
         else {
             if ($null -ne $printer) {
-                $PrinterParamaters = @{
+                $PrinterParams = @{
                     Name = $this.Name
                 }
                 Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
-                Remove-Printer @PrinterParamaters
+                Remove-Printer @PrinterParams
             } # End If Printer
             if ($null -ne $printerPort) {
                 try {
@@ -528,17 +528,17 @@ class Printer {
             # We need to generate a new portname and then restart the 
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }
-        $tempPrinterPortParamaters = @{
+        $tempPrinterPortParams = @{
             Name               = $tempPortName
             PrinterHostAddress = $this.Address 
-        } # End PrinterPortParamaters
-        Add-PrinterPort @tempPrinterPortParamaters
+        } # End PrinterPortParams
+        Add-PrinterPort @tempPrinterPortParams
         # We are updating the printer to use the new port while we convert the port to the desired type
-        $tempPrinterParamaters = @{
+        $tempPrinterParams = @{
             Name     = $this.Name
             PortName = $tempPortName
         }
-        Set-Printer @tempPrinterParamaters
+        Set-Printer @tempPrinterParams
         return $tempPortName
     } # End UseTempPort()
 } # End Class
