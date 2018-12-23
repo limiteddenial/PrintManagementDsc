@@ -82,6 +82,7 @@ class Printer {
             [bool]$newPrinterPort = $false
             # We need to create the port before we can create the printer
             if ($null -eq $printerPort) {
+                $addPrinterPortParams = @{}
                 switch ($this.PortType) {
                     'PaperCut' {
                         $this.CreatePaperCutPort()
@@ -93,11 +94,6 @@ class Printer {
                             LprQueueName    = $this.lprQueueName
                             LprByteCounting = $true
                         }
-                        if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
-                            $addPrinterPortParams.SNMP = $this.SNMPIndex
-                            $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
-                        }
-                        Add-PrinterPort @addPrinterPortParams
                     } # End LPR
                     Default {
                         # Default is as Standard TCPIP Port
@@ -105,21 +101,29 @@ class Printer {
                             Name               = $this.PortName
                             PrinterHostAddress = $this.Address 
                         }
-                        if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
-                            $addPrinterPortParams.SNMP = $this.SNMPIndex
-                            $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
-                        }
-                        Add-PrinterPort @addPrinterPortParams
                     } # End Default
                 } # End Switch PortType
+
+                if ($addPrinterPortParams.Count -ge 1 ) {
+                    if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
+                        $addPrinterPortParams.SNMP = $this.SNMPIndex
+                        $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
+                    }
+                    Add-PrinterPort @addPrinterPortParams
+                }
+
                 $newPrinterPort = $true
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType, $this.PortName)
             } # End If PrinterPort
             if ($null -eq $printer) {
-                if ($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )) {
-                    Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
-                    return
+                try {
+                    Get-PrinterDriver -Name $this.DriverName -ErrorAction Stop
                 }
+                catch {
+                    Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
+                    throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
+                }
+
                 $addPrinterParam = @{
                     Name       = $this.Name
                     PortName   = $this.PortName
