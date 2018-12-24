@@ -717,7 +717,7 @@ try {
                     Assert-MockCalled -CommandName Set-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myPrinter' -and $DriverName -eq 'newDriver' }
                     Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It
                 }
-                it 'Should fail to update printer driver due it does not exist' {
+                it 'Should fail to update printer driver that does not exist' {
                     $setParams = [Printer]$testPresentParams
                     $setParams.DriverName = 'badDriver'
 
@@ -982,6 +982,30 @@ try {
                     Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
                 }
+                it 'Should update PaperCut Port Address even it cannot read the registry' {
+                    $setParams = [Printer]$testPresentPaperCutParams
+                    $setParams.Address = 'new-address.local'
+                    
+                    Mock -CommandName Get-CimInstance -MockWith { $myPaperCutPrinterPort } -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $setParams.PortName)}
+                    Mock -CommandName Get-ItemProperty -MockWith { throw }
+
+                    { $setParams.set() } | Should -Not -Throw
+
+                    # No need to change printer ports as it is justing updating a value in the registry
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                    
+                    # Need to figure out what type of port it is
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $setParams.PortName)}
+                    
+                    # Used to determine if the address is correct
+                    Assert-MockCalled -CommandName Get-Item -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-ItemProperty -Times 1 -Exactly -Scope It
+
+                    # Used when updating the address
+                    Assert-MockCalled -CommandName Invoke-Command -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Restart-Service -Times 1 -Exactly -Scope It
+                }
 
                 it 'Should update LPR Port Address' {
                     $setParams = [Printer]$testPresentLPRParams
@@ -1068,8 +1092,48 @@ try {
                 } # End It Update LPR/TCPIP Port SNMPIndex
             } # End Context Update Port Settings
         } # End Describe Set Method
-    } 
-}
+        Describe 'UseTempPort Method' {
+            BeforeEach {
+                Mock -CommandName Add-PrinterPort
+                Mock -CommandName Set-Printer
+            }
+
+            it 'Should create port with name 111111111' {
+                $useTempPortParams = [Printer]$testPresentParams
+
+                Mock -CommandName Get-Random -MockWith { return 1 }
+                Mock -CommandName Get-CimInstance -MockWith { return $null } -ParameterFilter {$Query -eq "Select Name From Win32_TCPIpPrinterPort WHERE Name = '111111111'" }
+                
+                $useTempPortParams.useTempPort() | Should -Be '111111111'
+            }
+            
+            it 'Should create port with name 222222222' {
+                $useTempPortParams = [Printer]$testPresentParams
+
+                $script:mockCounter = 1
+                Mock -CommandName Get-Random -MockWith { 
+                    Write-Warning $script:mockCounter
+                    if ($script:mockCounter -le 9) {
+                        $script:mockCounter++
+                        return 1
+                    }
+                    else {
+                        $script:mockCounter++
+                        return 2
+                    } 
+                }
+
+                Mock -CommandName Get-CimInstance -MockWith { return $myPrinterPortCIM } -ParameterFilter {$Query -eq "Select Name From Win32_TCPIpPrinterPort WHERE Name = '111111111'" }
+                Mock -CommandName Get-CimInstance -MockWith { return $null } -ParameterFilter {$Query -eq "Select Name From Win32_TCPIpPrinterPort WHERE Name = '222222222'" }
+
+                $useTempPortParams.useTempPort()  | Should -Be '222222222'
+
+                Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq "Select Name From Win32_TCPIpPrinterPort WHERE Name = '111111111'" }
+                Assert-MockCalled -CommandName Get-CimInstance -Times 1 -Exactly -Scope It -ParameterFilter {$Query -eq "Select Name From Win32_TCPIpPrinterPort WHERE Name = '222222222'" }
+            }
+        } # End UseTempPort Method
+    } # End InModuleScope
+} # End try
 finally {
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
