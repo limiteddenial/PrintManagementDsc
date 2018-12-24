@@ -493,15 +493,14 @@ class Printer {
         # To create the PaperCut port we need to create a registry key however we can't use new-item due to 'PaperCut TCP/IP Port' the cmdlet switches / to a \. 
         # Using the 'PaperCut TCP$([char]0x002f)IP Port' does not work. So we are just using reg.exe to add the key
         # Wrapping the Reg.exe commands in invoke-command to be able to create tests
-        Invoke-Command -ScriptBlock { 
+        $null = Invoke-Command -ScriptBlock { 
             param(
                 [Parameter()]$PortName,
                 [Parameter()]$Address
             )
-            $System32Path = (Join-Path -Path (Get-Item ENV:\windir).value -ChildPath 'System32') 
-            & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f | Out-Null
+            & "$env:windir\System32\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f
             # Sets the port number to 9100
-            & "$system32Path\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v PortNumber /t REG_DWORD /d 0x0000238c /f | Out-Null          
+            & "$env:windir\System32\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v PortNumber /t REG_DWORD /d 0x0000238c /f          
         } -ArgumentList ($this.PortName, $this.Address)
         # Need to restart the spooler service before the port is usable
         Restart-Service -Name 'Spooler' -Force
@@ -525,6 +524,7 @@ class Printer {
         } # End If Description
         return $null
     } # End FindPortType()
+    
     hidden [System.String] UseTempPort() {
         # We required removing the exising port so a temp port needs to be created
         # We do a while loop to make sure the port name doesn't already exist
@@ -533,16 +533,20 @@ class Printer {
             # We need to generate a new portname and then restart the 
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }
+
         $tempPrinterPortParams = @{
             Name               = $tempPortName
             PrinterHostAddress = $this.Address 
         } # End PrinterPortParams
+
         Add-PrinterPort @tempPrinterPortParams
+
         # We are updating the printer to use the new port while we convert the port to the desired type
         $tempPrinterParams = @{
             Name     = $this.Name
             PortName = $tempPortName
         }
+
         Set-Printer @tempPrinterParams
         return $tempPortName
     } # End UseTempPort()
