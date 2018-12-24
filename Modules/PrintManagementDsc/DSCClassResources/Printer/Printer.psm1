@@ -147,10 +147,13 @@ class Printer {
                 }
                 if ($printer.DriverName -ne $this.DriverName) {
                     # Need to check if the driver exists before attempting to set the printer to use it
-                    if ($false -eq [bool](Get-PrinterDriver -Name $this.DriverName -ErrorAction SilentlyContinue )) {
+                    try {
+                        Get-PrinterDriver -Name $this.DriverName -ErrorAction Stop
+                    }
+                    catch {
                         Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
-                        return
-                    } # End If Print Driver
+                        throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
+                    }
                     # Updating variable to notify that the driver needs to be updated
                     $UpdatePrinterParams.DriverName = $this.DriverName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'DriverName', $this.DriverName, $printer.DriverName)
