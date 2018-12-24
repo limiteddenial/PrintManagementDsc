@@ -269,18 +269,16 @@ class Printer {
                     } # End Switch currentPortType
                     # The ports were converted the setting will be in the desired state.
                     return
-                }
+                } # End If not CurrentPortType 
                 else { 
-                    # End If not CurrentPortType 
-
                     switch ($currentPortType) {
                         'PaperCut' {
                             try {
                                 #To get Papercut address you need to look at the registry key
-                                $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
+                                $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty -ErrorAction Stop).HostName                    
                             }
                             catch {
-                                $currentAddress = $null
+                                $currentAddress = ''
                             } # End try/catch CurrentAddress
                             if ($this.Address -ne $currentAddress) {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address", $this.Address, $currentAddress)
