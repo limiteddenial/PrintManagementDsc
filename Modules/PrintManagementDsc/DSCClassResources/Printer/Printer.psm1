@@ -142,6 +142,7 @@ class Printer {
                 }
                 catch {
                     write-warning "in catch"
+                    Write-warning $error[0]
                     Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
                     throw ($this.Messages.FailedToAddPrinter -f $this.Name)
                 }
