@@ -141,6 +141,9 @@ class Printer {
                     Add-Printer @addPrinterParam -ErrorAction Stop
                 }
                 catch {
+                    $addPrinterParam.keys | % {
+                        write-host ("{0} `t=`t{1}" -f $_, $addPrinterParam[$_])
+                    }
                     write-warning "in catch"
                     $formatstring = "{0} : {1}`n{2}`n" +
                     "    + CategoryInfo          : {3}`n" +
