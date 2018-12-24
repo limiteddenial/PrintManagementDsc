@@ -135,10 +135,13 @@ class Printer {
                 if ($null -ne $this.Shared) {
                     $addPrinterParam.Shared = $this.Shared
                 }
+
+                Write-Warning "Adding printer"
                 try {
                     Add-Printer @addPrinterParam -ErrorAction Stop
                 }
                 catch {
+                    write-warning "in catch"
                     Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
                     throw ($this.Messages.FailedToAddPrinter -f $this.Name)
                 }
