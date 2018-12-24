@@ -1,0 +1,42 @@
+{
+    "ignorePaths": [
+        ".git/*",
+        ".vscode/*",
+        "Modules/PrintManagementDsc/DSCResource.Tests/*"
+    ],
+    "language": "en",
+    "dictionaries": [
+        "powershell"
+    ],
+    "words": [
+        "Boersma",
+        "CIIO",
+        "cmdletbinding",
+        "Codecov",
+        "dism",
+        "DWORD",
+        "GUID",
+        "Hashtable",
+        "HKEY",
+        "HKLM",
+        "ilike",
+        "LCSWDTSDRCWDWO",
+        "LPRSNMP",
+        "markdownlint",
+        "OICIIO",
+        "OIIO",
+        "Papercut",
+        "pnputil",
+        "PSCOMMANDPATH",
+        "SDDL",
+        "SNMP",
+        "SWRC",
+        "TCPIP",
+        "windir"
+    ],
+    "ignoreRegExpList": [
+        "AppVeyor",
+        "opencode@microsoft.com",
+        "\\.gitattributes"
+    ]
+}
