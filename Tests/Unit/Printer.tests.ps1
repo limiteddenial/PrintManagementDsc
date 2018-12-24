@@ -575,6 +575,25 @@ try {
                     Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
                 }
 
+                it 'Should handle Add-Printer throwing an error' {
+                    $setParams = [Printer]$testPresentParams
+                    $setParams.Name = $testAbsentParams.Name
+                    $setParams.PortName = $testAbsentParams.PortName
+
+                    Mock -CommandName Add-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+
+                    { $setParams.set() } | Should -Throw
+
+                    Assert-MockCalled -CommandName Get-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
+                    Assert-MockCalled -CommandName Add-Printer -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                    Assert-MockCalled -CommandName Add-PrinterPort -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-PrinterDriver -Times 1 -Exactly -Scope It -ParameterFilter { $Name -eq 'myDriver'}
+                    Assert-MockCalled -CommandName Get-CimInstance -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Get-WmiObject -Times 0 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Set-Printer -Times 0 -Exactly -Scope It
+                }
+
                 it 'New Printer and PrinterPort should be created with SNMP enabled' {
                     $setParams = [Printer]$testPresentSNMPParams
                     $setParams.Name = $testAbsentParams.Name

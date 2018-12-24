@@ -1,5 +1,6 @@
 # culture="en-US"
 ConvertFrom-StringData @'
+    FailedToAddPrinter=Failed to create printer {0}
     NotInDesiredState={0} does not match desired state. Current value: {1} - Desired Value: {2}
     NotInDesiredStateMultipleObjects={0} does not match desired state for {1}. Current value: {2} - Desired Value: {3}
     NewPrinter=Created Printer {0}

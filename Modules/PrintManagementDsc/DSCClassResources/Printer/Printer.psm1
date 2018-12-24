@@ -135,9 +135,16 @@ class Printer {
                 if ($null -ne $this.Shared) {
                     $addPrinterParam.Shared = $this.Shared
                 }
-                Add-Printer @addPrinterParam
+                try {
+                    Add-Printer @addPrinterParam -ErrorAction Stop
+                }
+                catch {
+                    Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
+                    throw ($this.Messages.FailedToAddPrinter -f $this.Name)
+                }
+                
                 $newPrinter = $true
-                Write-Verbose -Message ($this.Messages.NewPrinter -f $this.PortType)
+                Write-Verbose -Message ($this.Messages.NewPrinter -f $this.Name)
             } # End If Printer
 
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
