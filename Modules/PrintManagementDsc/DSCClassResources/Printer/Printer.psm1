@@ -142,7 +142,12 @@ class Printer {
                 }
                 catch {
                     write-warning "in catch"
-                    Write-warning -Message $_.toString()
+                    $formatstring = "{0} : {1}`n{2}`n" +
+                    "    + CategoryInfo          : {3}`n" +
+                    "    + FullyQualifiedErrorId : {4}`n"
+                    $fields = $_.InvocationInfo.MyCommand.Name, $_.ErrorDetails.Message, $_.InvocationInfo.PositionMessage, $_.CategoryInfo.ToString(), $_.FullyQualifiedErrorId
+                    write-warning -message ($formatstring -f $fields)
+                    
                     Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
                     throw ($this.Messages.FailedToAddPrinter -f $this.Name)
                 }
