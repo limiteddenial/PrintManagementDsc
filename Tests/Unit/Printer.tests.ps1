@@ -252,6 +252,15 @@ try {
 
                     $testparams.test() | Should -be $true
                 }
+                
+                it 'Should return false when PortName is incorrect and does not exist' {
+                    $testparams = [Printer]$testPresentParams
+                    $testparams.PortName = 'myAbsentPrinterPort'
+
+                    $testparams.test() | Should -be $false
+                    
+                    Assert-MockCalled -CommandName Get-PrinterPort -Times 1 -Exactly -Scope It -ParameterFilter {$Name -eq 'myAbsentPrinterPort'}   
+                }
 
                 it 'Should return false when PortName is incorrect' {
                     $testparams = [Printer]$testPresentParams
@@ -1111,8 +1120,7 @@ try {
                 $useTempPortParams = [Printer]$testPresentParams
 
                 $script:mockCounter = 1
-                Mock -CommandName Get-Random -MockWith { 
-                    Write-Warning $script:mockCounter
+                Mock -CommandName Get-Random -MockWith {
                     if ($script:mockCounter -le 9) {
                         $script:mockCounter++
                         return 1
