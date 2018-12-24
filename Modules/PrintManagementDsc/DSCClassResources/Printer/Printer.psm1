@@ -137,6 +137,7 @@ class Printer {
                 }
                 Add-Printer @addPrinterParam
                 $newPrinter = $true
+                Write-Verbose -Message ($this.Messages.NewPrinter -f $this.PortType)
             } # End If Printer
 
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
