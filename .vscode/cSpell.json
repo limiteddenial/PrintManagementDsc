@@ -2,7 +2,8 @@
     "ignorePaths": [
         ".git/*",
         ".vscode/*",
-        "Modules/PrintManagementDsc/DSCResource.Tests/*"
+        "Modules/PrintManagementDsc/DscResource.Tests/*",
+        "DscResource.Tests/*"
     ],
     "language": "en",
     "dictionaries": [

@@ -6,8 +6,7 @@ $script:DSCResourceName = 'Printer'
 [string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
 
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
-{
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 
@@ -16,7 +15,7 @@ $TestEnvironment = Initialize-TestEnvironment `
     -DSCModuleName $script:DSCModuleName `
     -DSCResourceName $script:DSCResourceName `
     -TestType Integration
-#endregion
+#endRegion
 
 Start-Service -Name Spooler
 Write-Warning -Message "Listing all drivers installed"
@@ -26,8 +25,7 @@ foreach ($driver in (Get-PrinterDriver).Name) {
 
 
 # Using try/finally to always cleanup even if something awful happens.
-try
-{
+try {
     #region Integration Tests
     $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath "$($script:DSCResourceName).config.ps1"
     . $ConfigFile -Verbose -ErrorAction Stop
@@ -35,21 +33,21 @@ try
     Describe "$($script:DSCResourceName)_Integration" {
         It 'Should compile and apply the MOF without throwing' {
             {
-             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive
+                & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive
 
-            Start-DscConfiguration `
-                -Path $TestDrive `
-                -ComputerName localhost `
-                -Wait `
-                -Verbose `
-                -Force `
-                -ErrorAction Stop
+                Start-DscConfiguration `
+                    -Path $TestDrive `
+                    -ComputerName localhost `
+                    -Wait `
+                    -Verbose `
+                    -Force `
+                    -ErrorAction Stop
             } | Should -Not -Throw
         } # End compile and apply mof
 
         It 'should be able to call Get-DscConfiguration without throwing' {
             { Get-DscConfiguration -Verbose -ErrorAction Stop } | Should -Not -Throw
-        } # End get-dscconfiguration
+        } # End Get-DscConfiguration
 
         It 'Should have set the resource and all the parameters should match' {
             $current = Get-DscConfiguration | Where-Object -FilterScript {
@@ -71,18 +69,16 @@ try
             $current[1].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
             $current[1].LprQueueName  | Should -Be $null
             $current[1].Shared   | Should -Be $false
-            $current[1].SNMPEnabled | Should -Be $true
             $current[1].SNMPCommunity | Should -Be 'public'
             $current[1].SNMPIndex | Should -Be 1
             $current[1].PermissionSDDL | Should -Be 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
         }
     } # End Describe
-    #endregion
+    #endRegion
 } # End Try
-finally
-{
+finally {
 
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
-    #endregion
+    #endRegion
 } # End Finally
