@@ -8,8 +8,8 @@
 * Converted cPrinter resource to a PowerShell class
 * Added tests for cPrinter resource
 * Added Appveyor testing
-* **Breaking Change** Changed cPrinter parameter _lprQueue_ to _lprQueueName_ to match get-printerport returned properties
-* **Breaking Change** Changed cPrinter parameter _SNMPCommunityName_ to _SNMPCommunity_ to match get-printerport returned properties
+* **Breaking Change** Changed cPrinter parameter _lprQueue_ to _lprQueueName_ to match Get-PrinterPort returned properties
+* **Breaking Change** Changed cPrinter parameter _SNMPCommunityName_ to _SNMPCommunity_ to match Get-PrinterPort returned properties
 * **Breaking Change** Removed cPrintDriverSet resource
 * Added cPrintDriver to specify multiple drivers from the same source instead of using the cPrintDriverSet resource
 * Added Purge parameter to cPrintDriver

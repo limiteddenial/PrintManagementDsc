@@ -182,7 +182,7 @@ class Printer {
                 $currentPortType = [PortType]$this.FindPortType()
                 if ($currentPortType -ne $this.PortType) {
                     Write-Verbose -Message ($this.Messages.NotInDesiredState -f "PortType", $currentPortType, $this.PortType)
-                    # If there are any printjobs queued on the printer it will cause issues changing the porttype so we will remove the print jobs
+                    # If there are any PrintJobs queued on the printer it will cause issues changing the PortType so we will remove the print jobs
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                     switch ($currentPortType) {
                         'PaperCut' {
@@ -292,7 +292,7 @@ class Printer {
                             if ($currentPortType -eq 'LPR' -and $printerPort.lprQueueName -ne $this.lprQueueName) {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "lprQueueName", $this.lprQueueName, $printerPort.lprQueueName)
                                 $newPrinterPortParams.lprQueueName = $this.lprQueueName
-                            } # End If LprQueuename
+                            } # End If LprQueueName
                             if ($this.Address -ne $printerPort.PrinterHostAddress) {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address", $this.Address, $printerPort.PrinterHostAddress)
                                 $newPrinterPortParams.PrinterHostAddress = $this.Address
@@ -316,7 +316,7 @@ class Printer {
                             } # End If newPrinterPortParams.Count
                         } # End Default
                     } # End Switch $currentPortType
-                } # end if curreentPortType
+                } # end if currentPortType
             } # End If not NewPrinterPort
         }
         else {
@@ -419,7 +419,7 @@ class Printer {
 
                 } # End Default
             } # End Switch
-            # All the conditions have been met so we will return true so the set() method doesn't get called as everyting is in a desired state. 
+            # All the conditions have been met so we will return true so the set() method doesn't get called as everything is in a desired state. 
             return $true
         }
         else {
@@ -524,13 +524,13 @@ class Printer {
         } # End If Description
         return $null
     } # End FindPortType()
-    
+
     hidden [System.String] UseTempPort() {
-        # We required removing the exising port so a temp port needs to be created
+        # We required removing the existing port so a temp port needs to be created
         # We do a while loop to make sure the port name doesn't already exist
         $tempPortName = -join (1..9 | Get-Random -Count 5)
         while ($null -ne (Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) ) {
-            # We need to generate a new portname and then restart the 
+            # We need to generate a new portName and then restart the 
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }
 
