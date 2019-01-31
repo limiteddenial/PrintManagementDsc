@@ -124,6 +124,10 @@ class Printer {
                     throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
                 }
 
+                <#
+                    Building a hashtable with desired parameters of the new printer.
+                    This hashtable will be used for splatting the Add-Printer cmdlet.
+                #>
                 $addPrinterParam = @{
                     Name       = $this.Name
                     PortName   = $this.PortName
@@ -134,23 +138,12 @@ class Printer {
                 } # End If PermissionSDDL
                 if ($null -ne $this.Shared) {
                     $addPrinterParam.Shared = $this.Shared
-                }
+                } # end if shared
 
-                Write-Warning "Adding printer"
                 try {
                     Add-Printer @addPrinterParam -ErrorAction Stop
                 }
                 catch {
-                    $addPrinterParam.keys | % {
-                        Write-Warning ("{0} `t=`t{1}" -f $_, $addPrinterParam[$_])
-                    }
-                    write-warning "in catch"
-                    $formatstring = "{0} : {1}`n{2}`n" +
-                    "    + CategoryInfo          : {3}`n" +
-                    "    + FullyQualifiedErrorId : {4}`n"
-                    $fields = $_.InvocationInfo.MyCommand.Name, $_.ErrorDetails.Message, $_.InvocationInfo.PositionMessage, $_.CategoryInfo.ToString(), $_.FullyQualifiedErrorId
-                    write-warning -message ($formatstring -f $fields)
-                    
                     Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
                     throw ($this.Messages.FailedToAddPrinter -f $this.Name)
                 }
