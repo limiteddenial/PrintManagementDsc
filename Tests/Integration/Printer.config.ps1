@@ -4,7 +4,7 @@ $TestPrinterLPR = [PSObject]@{
     PortType     = 'LPR'
     PortName     = 'IntegrationLPRPort'
     Address      = 'Test.local'
-    DriverName   = 'Microsoft XPS Document Writer v4'
+    DriverName   = 'Generic / Text Only'
     LprQueueName = 'dummyQueue'
     Shared       = $false
 }
@@ -15,12 +15,13 @@ $TestPrinterTCPIP = [PSObject]@{
     PortType       = 'TCPIP'
     PortName       = 'IntegrationTCPIPPort'
     Address        = 'Test.local'
-    DriverName     = 'Microsoft XPS Document Writer v4'
+    DriverName     = 'Generic / Text Only'
     Shared         = $true
     SNMPIndex      = 1
     SNMPCommunity  = 'public'
     PermissionSDDL = 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
 }
+[string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
 
 Configuration Printer_Config
 {
@@ -35,6 +36,13 @@ Configuration Printer_Config
 
     Node $NodeName
     {
+        PrinterDriver Integration_Driver {
+            Ensure  = 'Enable'
+            Name    = 'Generic / Text Only'
+            Version = '6.1.7600.16385'
+            Source  = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
+        } # End PrinterDriver
+
         Printer TCPIP-Printer {
             Ensure         = $TestPrinterTCPIP.Ensure
             Name           = $TestPrinterTCPIP.Name

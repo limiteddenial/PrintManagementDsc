@@ -53,25 +53,26 @@ try {
             $current = Get-DscConfiguration | Where-Object -FilterScript {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
-            
-            $current[0].Name | Should -Be 'IntegrationTCPIP'
-            $current[0].PortType  | Should -Be 'TCPIP'
-            $current[0].PortName  | Should -Be 'IntegrationTCPIPPort'
-            $current[0].Address  | Should -Be 'Test.local'
-            $current[0].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
-            $current[0].LprQueueName  | Should -Be $null
-            $current[0].Shared   | Should -Be $false
-            $current[0].SNMPCommunity | Should -Be 'public'
-            $current[0].SNMPIndex | Should -Be 1
-            $current[0].PermissionSDDL | Should -Be 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
+            # $current[0] is the driver resource, it is tested in another test.
 
-            $current[1].Name | Should -Be 'IntegrationLPR'
-            $current[1].PortType  | Should -Be 'LPR'
-            $current[1].PortName  | Should -Be 'IntegrationLPRPort'
+            $current[1].Name | Should -Be 'IntegrationTCPIP'
+            $current[1].PortType  | Should -Be 'TCPIP'
+            $current[1].PortName  | Should -Be 'IntegrationTCPIPPort'
             $current[1].Address  | Should -Be 'Test.local'
             $current[1].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
-            $current[1].LprQueueName  | Should -Be 'dummyQueue'
+            $current[1].LprQueueName  | Should -Be $null
             $current[1].Shared   | Should -Be $false
+            $current[1].SNMPCommunity | Should -Be 'public'
+            $current[1].SNMPIndex | Should -Be 1
+            $current[1].PermissionSDDL | Should -Be 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
+
+            $current[2].Name | Should -Be 'IntegrationLPR'
+            $current[2].PortType  | Should -Be 'LPR'
+            $current[2].PortName  | Should -Be 'IntegrationLPRPort'
+            $current[2].Address  | Should -Be 'Test.local'
+            $current[2].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
+            $current[2].LprQueueName  | Should -Be 'dummyQueue'
+            $current[2].Shared   | Should -Be $false
         }
     } # End Describe
     #endRegion
