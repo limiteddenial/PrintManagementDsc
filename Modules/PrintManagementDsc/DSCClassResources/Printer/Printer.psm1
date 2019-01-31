@@ -63,26 +63,34 @@ class Printer {
     [void] Set() {
         try {
             $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
-        }
-        catch {
+        } catch {
             Write-Verbose -Message ($this.Messages.PrinterDoesNotExist -f $this.Name)
             $printer = $null
-        } 
+        } # end try/catch
         try {
             $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
-        }
-        catch {
+        } catch {
             Write-Verbose -Message ($this.Messages.PrinterPortDoesNotExist -f $this.PortName)
             $printerPort = $null
-        }
+        } # end try/catch
+
         if ($this.Ensure -eq [Ensure]::Present) {
-            # Creating variables to determine if new a new printer or printerPort was just created. 
-            # Doing this to bypass excess setting checks as the settings would already set correctly
+            <#
+                Creating variables to determine if new a new printer or printerPort was just created. 
+                Doing this to bypass excess setting checks as the settings would already set correctly
+            #>
             [bool]$newPrinter = $false
             [bool]$newPrinterPort = $false
+
             # We need to create the port before we can create the printer
             if ($null -eq $printerPort) {
+
+                <#
+                    Different parameters are needed depending on the port type. So we are going to build
+                    a hashtable for splatting on the Add-PrinterPort cmdlet
+                #>
                 $addPrinterPortParams = @{}
+
                 switch ($this.PortType) {
                     'PaperCut' {
                         $this.CreatePaperCutPort()
@@ -110,19 +118,19 @@ class Printer {
                         $addPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
                     }
                     Add-PrinterPort @addPrinterPortParams
-                }
+                } # end if port params count
 
                 $newPrinterPort = $true
                 Write-Verbose -Message ($this.Messages.NewPrinterPort -f $this.PortType, $this.PortName)
             } # End If PrinterPort
+
             if ($null -eq $printer) {
                 try {
                     Get-PrinterDriver -Name $this.DriverName -ErrorAction Stop
-                }
-                catch {
+                } catch {
                     Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
                     throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
-                }
+                } # end try/catch
 
                 <#
                     Building a hashtable with desired parameters of the new printer.
@@ -142,52 +150,63 @@ class Printer {
 
                 try {
                     Add-Printer @addPrinterParam -ErrorAction Stop
-                }
-                catch {
+                } catch {
                     Write-Error -Message ($this.Messages.FailedToAddPrinter -f $this.Name)
                     throw ($this.Messages.FailedToAddPrinter -f $this.Name)
-                }
-                
+                } # end try/catch
+
                 $newPrinter = $true
                 Write-Verbose -Message ($this.Messages.NewPrinter -f $this.Name)
             } # End If Printer
 
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
             if ($newPrinter -eq $false) {
-                $UpdatePrinterParams = @{
+                <#
+                    Building a hashtable with the settings that needed to be changed. We do this so all changes 
+                    are done with one command instead of running it each time a setting needs to get updated.
+                #>
+                $updatePrinterParam = @{
                     Name = $this.Name
-                    # This will get populated if any settings are not correct
                 }
+
                 if ($printer.DriverName -ne $this.DriverName) {
                     # Need to check if the driver exists before attempting to set the printer to use it
                     try {
                         Get-PrinterDriver -Name $this.DriverName -ErrorAction Stop
-                    }
-                    catch {
+                    } catch {
                         Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
                         throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
-                    }
+                    } # end try/catch 
+
                     # Updating variable to notify that the driver needs to be updated
-                    $UpdatePrinterParams.DriverName = $this.DriverName
+                    $updatePrinterParam.DriverName = $this.DriverName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'DriverName', $this.DriverName, $printer.DriverName)
                 } # End If DriverName
+
                 if ($printer.Shared -ne $this.Shared) {
-                    $UpdatePrinterParams.Shared = $this.Shared
+                    $updatePrinterParam.Shared = $this.Shared
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Shared', $this.Shared, $printer.Shared)
                 } # End If Shared
+
                 if ($null -ne $this.PermissionSDDL -and $printer.PermissionSDDL -ne $this.PermissionSDDL) {
-                    $UpdatePrinterParams.PermissionSDDL = $this.PermissionSDDL
+                    $updatePrinterParam.PermissionSDDL = $this.PermissionSDDL
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PermissionSDDL', $this.PermissionSDDL, $printer.PermissionSDDL)
                 } # End If PermissionSDDL
+
                 if ($printer.PortName -ne $this.PortName) {
-                    $UpdatePrinterParams.PortName = $this.PortName
+                    $updatePrinterParam.PortName = $this.PortName
                     Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'PortName', $this.PortName, $printer.PortName)
                     # To make changes we need to make sure there are no jobs queued up on the printer
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If PrinterPort
-                if ($UpdatePrinterParams.count -gt 1) {
-                    Set-Printer @UpdatePrinterParams
-                } # End If UpdatePrinterParams
+
+                <# 
+                    If the no params are added besides the default name property. 
+                    We do not need to update the printer, otherwise the printer needs to be updated
+                #>
+                if ($updatePrinterParam.count -gt 1) {
+                    Set-Printer @updatePrinterParam
+                } # End If updatePrinterParam
             } # End If NewPrinter
 
             # If the printerPort already existed the settings need to be checked. Otherwise the printer was just created with specified settings
@@ -222,12 +241,12 @@ class Printer {
                                 } # End TCPIP
                             } # End Switch this.PortType
                             Add-PrinterPort @newPrinterPortParams
-                            $updatePrinterParams = @{
+                            $updatePrinterParam = @{
                                 Name     = $this.Name
                                 PortName = $this.PortName
                             }
                             # Changing the printer to use the new port
-                            Set-Printer @updatePrinterParams
+                            Set-Printer @updatePrinterParam
                             # To clean up we will remove the temp printer port
                             Remove-PrinterPort -Name $tempPort
                         } # End Papercut
@@ -245,11 +264,11 @@ class Printer {
                                     $tempPort = $this.UseTempPort()
                                     Remove-PrinterPort -Name $this.PortName
                                     $this.CreatePaperCutPort()
-                                    $updatePrinterParams = @{
+                                    $updatePrinterParam = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
                                     }  
-                                    Set-Printer @updatePrinterParams
+                                    Set-Printer @updatePrinterParam
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
                                 } # End PaperCut
@@ -269,11 +288,11 @@ class Printer {
                                     $tempPort = $this.UseTempPort()
                                     Remove-PrinterPort -Name $this.PortName
                                     $this.CreatePaperCutPort()
-                                    $updatePrinterParams = @{
+                                    $updatePrinterParam = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
                                     }  
-                                    Set-Printer @updatePrinterParams
+                                    Set-Printer @updatePrinterParam
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
                                 } # End PaperCut
