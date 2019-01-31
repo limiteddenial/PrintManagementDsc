@@ -1,6 +1,6 @@
 <#
     .EXAMPLE
-        Addes a new printer using LPR for communication
+        Adds two printers, one using TCPIP port and other using LPR for communication
 #>
 Configuration Example 
 {
@@ -15,16 +15,26 @@ Configuration Example
 
     Node $NodeName 
     {
-        Printer NewLPRPrinter 
-        {
-            Ensure = 'Present'
-            Name = 'ExamplePrinter'
-            PortType = 'LPR'
-            PortName = 'ExamplePort'
-            Address = 'Example.local'
-            DriverName = 'fake'
+        Printer NewLPRPrinter {
+            Ensure       = 'Present'
+            Name         = 'ExampleLPRPrinter'
+            PortType     = 'LPR'
+            PortName     = 'ExamplePort'
+            Address      = 'Example.local'
+            DriverName   = 'fake'
             LprQueueName = 'testQueue'
-            Shared = $false
+            Shared       = $false
         } # End Printer
+
+        Printer NewLPRPrinter {
+            Ensure     = 'Present'
+            Name       = 'ExampleTCPIPPrinter'
+            PortType   = 'TCPIP'
+            PortName   = 'ExampleTCPIPPort'
+            Address    = 'tcpip.local'
+            DriverName = 'fake'
+            Shared     = $true
+        } # End Printer
+
     } # End Node
 } # End Configuration
