@@ -37,7 +37,7 @@ Configuration Printer_Config
     Node $NodeName
     {
         PrinterDriver Integration_Driver {
-            Ensure  = 'Enable'
+            Ensure  = 'Present'
             Name    = 'Generic / Text Only'
             Version = '6.1.7600.16385'
             Source  = "$script:moduleRoot\IntegrationDriver\prnge001.inf"

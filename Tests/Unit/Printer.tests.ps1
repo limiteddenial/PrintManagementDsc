@@ -20,7 +20,7 @@ $TestEnvironment = Initialize-TestEnvironment `
     -TestType Unit `
     -ResourceType Class
 #end region HEADER
-$VerbosePreference = "Continue"
+
 # Begin Testing
 try {
     #region Pester Tests
