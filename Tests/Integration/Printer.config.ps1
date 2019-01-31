@@ -35,17 +35,6 @@ Configuration Printer_Config
 
     Node $NodeName
     {
-        Printer LPRPrinter {
-            Ensure       = $TestPrinterLPR.Ensure
-            Name         = $TestPrinterLPR.Name
-            PortType     = $TestPrinterLPR.PortType
-            PortName     = $TestPrinterLPR.PortName
-            Address      = $TestPrinterLPR.Address
-            DriverName   = $TestPrinterLPR.DriverName
-            LprQueueName = $TestPrinterLPR.LprQueueName
-            Shared       = $TestPrinterLPR.Shared
-        }
-        
         Printer TCPIP-Printer {
             Ensure         = $TestPrinterTCPIP.Ensure
             Name           = $TestPrinterTCPIP.Name
@@ -57,6 +46,17 @@ Configuration Printer_Config
             SNMPCommunity  = $TestPrinterTCPIP.SNMPCommunity
             SNMPIndex      = $TestPrinterTCPIP.SNMPIndex
             PermissionSDDL = $TestPrinterTCPIP.PermissionSDDL
+        }
+
+        Printer LPRPrinter {
+            Ensure       = $TestPrinterLPR.Ensure
+            Name         = $TestPrinterLPR.Name
+            PortType     = $TestPrinterLPR.PortType
+            PortName     = $TestPrinterLPR.PortName
+            Address      = $TestPrinterLPR.Address
+            DriverName   = $TestPrinterLPR.DriverName
+            LprQueueName = $TestPrinterLPR.LprQueueName
+            Shared       = $TestPrinterLPR.Shared
         }
     }
 }
