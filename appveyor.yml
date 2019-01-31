@@ -27,7 +27,7 @@ build: false
 
 test_script:
     - ps: |
-        Invoke-AppveyorTestScriptTask -RunTestInOrder -CodeCovIo -MainModulePath $mainModuleFolder
+        Invoke-AppveyorTestScriptTask -RunTestInOrder -CodeCoverage -CodeCovIo -MainModulePath $mainModuleFolder
 #---------------------------------#
 #      deployment configuration   #
 #---------------------------------#
