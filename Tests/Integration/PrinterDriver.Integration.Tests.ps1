@@ -1,15 +1,13 @@
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 1)]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
-
-
 
 #region HEADER
 # Integration Test Template Version: 1.1.0
 [string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
 
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
-{
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 
@@ -30,8 +28,7 @@ Start-Service -Name Spooler
 
 # Using try/finally to always cleanup even if something awful happens.
 
-try
-{
+try {
     #region Integration Tests
     
 
@@ -39,12 +36,12 @@ try
         $configData = @{
             AllNodes = @(
                 @{
-                    NodeName  = 'localhost'
-                    Ensure = 'Present'
-                    Name = 'Generic / Text Only'
-                    Version = '6.1.7600.16385'
-                    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
-                    Purge = $false
+                    NodeName = 'localhost'
+                    Ensure   = 'Present'
+                    Name     = 'Generic / Text Only'
+                    Version  = '6.1.7600.16385'
+                    Source   = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
+                    Purge    = $false
                 }
             )
         }
@@ -53,15 +50,15 @@ try
 
         It 'Should compile and apply the MOF without throwing' {
             {
-             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
+                & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
 
-            Start-DscConfiguration `
-                -Path $TestDrive `
-                -ComputerName localhost `
-                -Wait `
-                -Verbose `
-                -Force `
-                -ErrorAction Stop
+                Start-DscConfiguration `
+                    -Path $TestDrive `
+                    -ComputerName localhost `
+                    -Wait `
+                    -Verbose `
+                    -Force `
+                    -ErrorAction Stop
             } | Should -Not -Throw
         } # End compile and apply mof
 
@@ -81,12 +78,12 @@ try
         $configData = @{
             AllNodes = @(
                 @{
-                    NodeName  = 'localhost'
-                    Ensure = 'Absent'
-                    Name = 'Generic / Text Only'
-                    Version = '6.1.7600.16385'
-                    Source = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
-                    Purge = $true
+                    NodeName = 'localhost'
+                    Ensure   = 'Absent'
+                    Name     = 'Generic / Text Only'
+                    Version  = '6.1.7600.16385'
+                    Source   = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
+                    Purge    = $true
                 }
             )
         }
@@ -95,15 +92,15 @@ try
 
         It 'Should compile and apply the MOF without throwing' {
             {
-             & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
+                & "$($script:DSCResourceName)_Config" -OutputPath $TestDrive -ConfigurationData $configData
 
-            Start-DscConfiguration `
-                -Path $TestDrive `
-                -ComputerName localhost `
-                -Wait `
-                -Verbose `
-                -Force `
-                -ErrorAction Continue
+                Start-DscConfiguration `
+                    -Path $TestDrive `
+                    -ComputerName localhost `
+                    -Wait `
+                    -Verbose `
+                    -Force `
+                    -ErrorAction Continue
             } | Should -Not -Throw
         } # End compile and apply mof
 
@@ -121,8 +118,7 @@ try
     } # End Describe
     #endregion
 } # End Try
-finally
-{
+finally {
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion

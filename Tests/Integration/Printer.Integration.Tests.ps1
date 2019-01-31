@@ -1,3 +1,4 @@
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 2)]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'Printer'
 
