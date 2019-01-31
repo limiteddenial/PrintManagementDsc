@@ -65,7 +65,6 @@ try {
             $current[1].Shared   | Should -Be $true
             $current[1].SNMPCommunity | Should -Be 'public'
             $current[1].SNMPIndex | Should -Be 1
-            $current[1].PermissionSDDL | Should -Be 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
 
             $current[2].Name | Should -Be 'IntegrationLPR'
             $current[2].PortType  | Should -Be 'LPR'

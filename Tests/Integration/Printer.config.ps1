@@ -10,16 +10,15 @@ $TestPrinterLPR = [PSObject]@{
 }
 
 $TestPrinterTCPIP = [PSObject]@{
-    Ensure         = 'Present'
-    Name           = 'IntegrationTCPIP'
-    PortType       = 'TCPIP'
-    PortName       = 'IntegrationTCPIPPort'
-    Address        = 'Test.local'
-    DriverName     = 'Generic / Text Only'
-    Shared         = $true
-    SNMPIndex      = 1
-    SNMPCommunity  = 'public'
-    PermissionSDDL = 'G:SYD:(A;OIIO;GA;;;CO)(A;OIIO;GA;;;AC)(A;;SWRC;;;WD)(A;CIIO;GX;;;WD)(A;;SWRC;;;AC)(A;CIIO;GX;;;AC)(A;;LCSWDTSDRCWDWO;;;BA)(A;OICIIO;GA;;;BA)'
+    Ensure        = 'Present'
+    Name          = 'IntegrationTCPIP'
+    PortType      = 'TCPIP'
+    PortName      = 'IntegrationTCPIPPort'
+    Address       = 'Test.local'
+    DriverName    = 'Generic / Text Only'
+    Shared        = $true
+    SNMPIndex     = 1
+    SNMPCommunity = 'public'
 }
 [string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
 
@@ -44,16 +43,15 @@ Configuration Printer_Config
         } # End PrinterDriver
 
         Printer TCPIP-Printer {
-            Ensure         = $TestPrinterTCPIP.Ensure
-            Name           = $TestPrinterTCPIP.Name
-            PortType       = $TestPrinterTCPIP.PortType
-            PortName       = $TestPrinterTCPIP.PortName
-            Address        = $TestPrinterTCPIP.Address
-            DriverName     = $TestPrinterTCPIP.DriverName
-            Shared         = $TestPrinterTCPIP.Shared
-            SNMPCommunity  = $TestPrinterTCPIP.SNMPCommunity
-            SNMPIndex      = $TestPrinterTCPIP.SNMPIndex
-            PermissionSDDL = $TestPrinterTCPIP.PermissionSDDL
+            Ensure        = $TestPrinterTCPIP.Ensure
+            Name          = $TestPrinterTCPIP.Name
+            PortType      = $TestPrinterTCPIP.PortType
+            PortName      = $TestPrinterTCPIP.PortName
+            Address       = $TestPrinterTCPIP.Address
+            DriverName    = $TestPrinterTCPIP.DriverName
+            Shared        = $TestPrinterTCPIP.Shared
+            SNMPCommunity = $TestPrinterTCPIP.SNMPCommunity
+            SNMPIndex     = $TestPrinterTCPIP.SNMPIndex
         }
 
         Printer LPRPrinter {

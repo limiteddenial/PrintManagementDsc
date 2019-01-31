@@ -26,7 +26,7 @@ Configuration Example
             Shared       = $false
         } # End Printer
 
-        Printer NewLPRPrinter {
+        Printer NewTCPIPPrinter {
             Ensure     = 'Present'
             Name       = 'ExampleTCPIPPrinter'
             PortType   = 'TCPIP'
