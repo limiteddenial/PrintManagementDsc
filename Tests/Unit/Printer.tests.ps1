@@ -580,7 +580,7 @@ try {
                     $setParams.Name = $testAbsentParams.Name
                     $setParams.PortName = $testAbsentParams.PortName
 
-                    Mock -CommandName Add-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+                    Mock -CommandName Add-Printer -MockWith { throw [System.ArgumentException]::new("Cannot run command")} -ParameterFilter { $Name -eq 'myAbsentPrinter' }
 
                     { $setParams.set() } | Should -Throw
 
