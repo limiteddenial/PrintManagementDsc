@@ -27,10 +27,7 @@ build: false
 
 test_script:
     - ps: |
-        Invoke-AppveyorTestScriptTask `
-            -Type 'Harness' `
-            -MainModulePath $mainModuleFolder `
-            -CodeCovIo
+        Invoke-AppveyorTestScriptTask -RunTestInOrder -CodeCovIo -MainModulePath $mainModuleFolder
 #---------------------------------#
 #      deployment configuration   #
 #---------------------------------#
