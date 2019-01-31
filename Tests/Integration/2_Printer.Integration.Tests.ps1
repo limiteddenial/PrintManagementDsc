@@ -60,7 +60,7 @@ try {
             $current[1].PortType  | Should -Be 'TCPIP'
             $current[1].PortName  | Should -Be 'IntegrationTCPIPPort'
             $current[1].Address  | Should -Be 'Test.local'
-            $current[1].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
+            $current[1].DriverName  | Should -Be 'Generic / Text Only'
             $current[1].LprQueueName  | Should -Be $null
             $current[1].Shared   | Should -Be $false
             $current[1].SNMPCommunity | Should -Be 'public'
@@ -71,7 +71,7 @@ try {
             $current[2].PortType  | Should -Be 'LPR'
             $current[2].PortName  | Should -Be 'IntegrationLPRPort'
             $current[2].Address  | Should -Be 'Test.local'
-            $current[2].DriverName  | Should -Be 'Microsoft XPS Document Writer v4'
+            $current[2].DriverName  | Should -Be 'Generic / Text Only'
             $current[2].LprQueueName  | Should -Be 'dummyQueue'
             $current[2].Shared   | Should -Be $false
         }
