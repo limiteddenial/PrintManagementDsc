@@ -20,7 +20,7 @@ $TestPrinterTCPIP = [PSObject]@{
     SNMPIndex     = 1
     SNMPCommunity = 'public'
 }
-[string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
+[string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 Configuration Printer_Config
 {
