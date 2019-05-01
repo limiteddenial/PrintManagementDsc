@@ -6,15 +6,15 @@ The **PrintManagementDsc** module contains DSC resources for deployment and conf
 
 ### master
 
-[![Build status](https://ci.appveyor.com/api/projects/status/k8mfwp3easg4n5au/branch/master?svg=true)](https://ci.appveyor.com/project/limiteddenial/cprintermanagement/branch/master)
-[![Build status](https://codecov.io/gh/limiteddenial/cPrinterManagement/branch/master/graph/badge.svg)](https://codecov.io/gh/limiteddenial/cPrinterManagement/branch/master/graph/badge.svg)
+[![Build status](https://ci.appveyor.com/api/projects/status/c4ivagrj7kmb2wpq/branch/master?svg=true)](https://ci.appveyor.com/project/limiteddenial/printmanagementdsc/branch/master)
+[![Build status](https://codecov.io/gh/limiteddenial/printmanagementdsc/branch/master/graph/badge.svg)](https://codecov.io/gh/limiteddenial/printmanagementdsc/branch/master/graph/badge.svg)
 
 This is the branch containing the latest release - no contributions should be made directly to this branch.
 
 ### dev
 
-[![Build status](https://ci.appveyor.com/api/projects/status/k8mfwp3easg4n5au/branch/dev?svg=true)](https://ci.appveyor.com/project/limiteddenial/cprintermanagement/branch/dev)
-[![Build status](https://codecov.io/gh/limiteddenial/cPrinterManagement/branch/dev/graph/badge.svg)](https://codecov.io/gh/limiteddenial/cPrinterManagement/branch/dev/graph/badge.svg)
+[![Build status](https://ci.appveyor.com/api/projects/status/c4ivagrj7kmb2wpq/branch/dev?svg=true)](https://ci.appveyor.com/project/limiteddenial/printmanagementdsc/branch/dev)
+[![Build status](https://codecov.io/gh/limiteddenial/printmanagementdsc/branch/dev/graph/badge.svg)](https://codecov.io/gh/limiteddenial/printmanagementdsc/branch/dev/graph/badge.svg)
 
 This is the development branch to which contributions should be proposed by contributors as pull requests.
 
