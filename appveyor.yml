@@ -1,7 +1,10 @@
 #---------------------------------#
 #      environment configuration  #
 #---------------------------------#
-version: 2.0.0.{build}
+version: 2.0.{build}.0
+environment:
+  gallery_api:
+    secure: jgLdwjxXArQp5UMHQNhyTv2XP/HjdSH3ndQ1cNV17fpoSwRQBRw8bEIdYp1rTXcC
 install:
     - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
