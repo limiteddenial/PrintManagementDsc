@@ -105,8 +105,7 @@ class PrinterDriver {
 
                         if ($output -ilike "*successfully*") {
                             Write-Verbose -Message ($this.Messages.DriverRemovedSuccessfullyMessage -f $stagedDriver.Driver)
-                        }
-                        else {
+                        } else {
                             Write-Error -Message $this.Messages.ErrorRemovingDriverMessage
                         }
                     } # End else driverConflicts
@@ -201,10 +200,10 @@ class PrinterDriver {
 
     hidden [System.Collections.Hashtable] InstalledDriver() {
         # Since we don't have an INF file to look at. We need look in the driver store.
-        $InstalledDriverPacks = Get-WindowsDriver -Online -All -Verbose:$false | Where-Object {$_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version}
+        $InstalledDriverPacks = Get-WindowsDriver -Online -All -Verbose:$false | Where-Object { $_.ClassName -eq 'Printer' -and $_.Version -eq $this.Version }
         foreach ($InstalledDriverPack in $InstalledDriverPacks) {
-            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object {$this.Name -contains $_.HardwareDescription}
-            
+            $DriverExists = Get-WindowsDriver -Online -Driver $InstalledDriverPack.Driver -Verbose:$false | Where-Object { $this.Name -contains $_.HardwareDescription }
+
             if ($DriverExists) {
                 Write-Verbose -Message ($this.Messages.FoundStagedDriverMessage -f $InstalledDriverPack.OriginalFileName)
                 $returnDriver = @{

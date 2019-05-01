@@ -12,8 +12,8 @@ class Printer {
     [DscProperty(Mandatory)]
     [Ensure]
     $Ensure
-    
-    [DscProperty(Key)] 
+
+    [DscProperty(Key)]
     [ValidateNotNullOrEmpty()]
     [System.String]
     $Name
@@ -41,7 +41,7 @@ class Printer {
     [DscProperty()]
     [System.String]
     $PermissionSDDL
-    
+
     [DscProperty()]
     [System.String]
     $SNMPCommunity
@@ -76,7 +76,7 @@ class Printer {
 
         if ($this.Ensure -eq [Ensure]::Present) {
             <#
-                Creating variables to determine if new a new printer or printerPort was just created. 
+                Creating variables to determine if new a new printer or printerPort was just created.
                 Doing this to bypass excess setting checks as the settings would already set correctly
             #>
             [bool]$newPrinter = $false
@@ -89,7 +89,7 @@ class Printer {
                     Different parameters are needed depending on the port type. So we are going to build
                     a hashtable for splatting on the Add-PrinterPort cmdlet
                 #>
-                $addPrinterPortParams = @{}
+                $addPrinterPortParams = @{ }
 
                 switch ($this.PortType) {
                     'PaperCut' {
@@ -107,7 +107,7 @@ class Printer {
                         # Default is as Standard TCPIP Port
                         $addPrinterPortParams = @{
                             Name               = $this.PortName
-                            PrinterHostAddress = $this.Address 
+                            PrinterHostAddress = $this.Address
                         }
                     } # End Default
                 } # End Switch PortType
@@ -162,7 +162,7 @@ class Printer {
             # If the printer already existed the settings need to be checked. Otherwise the printer was just created with specified settings
             if ($newPrinter -eq $false) {
                 <#
-                    Building a hashtable with the settings that needed to be changed. We do this so all changes 
+                    Building a hashtable with the settings that needed to be changed. We do this so all changes
                     are done with one command instead of running it each time a setting needs to get updated.
                 #>
                 $updatePrinterParam = @{
@@ -176,7 +176,7 @@ class Printer {
                     } catch {
                         Write-Error -Message ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name) -Exception 'ObjectNotFound' -Category "ObjectNotFound"
                         throw ($this.Messages.PrinterNoDriver -f $this.DriverName, $this.Name)
-                    } # end try/catch 
+                    } # end try/catch
 
                     # Updating variable to notify that the driver needs to be updated
                     $updatePrinterParam.DriverName = $this.DriverName
@@ -200,8 +200,8 @@ class Printer {
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If PrinterPort
 
-                <# 
-                    If the no params are added besides the default name property. 
+                <#
+                    If the no params are added besides the default name property.
                     We do not need to update the printer, otherwise the printer needs to be updated
                 #>
                 if ($updatePrinterParam.count -gt 1) {
@@ -237,7 +237,7 @@ class Printer {
                                     $newPrinterPortParams.LprByteCounting = $true
                                 } # End LPR
                                 'TCPIP' {
-                                    $newPrinterPortParams.PrinterHostAddress = $this.Address 
+                                    $newPrinterPortParams.PrinterHostAddress = $this.Address
                                 } # End TCPIP
                             } # End Switch this.PortType
                             Add-PrinterPort @newPrinterPortParams
@@ -267,7 +267,7 @@ class Printer {
                                     $updatePrinterParam = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
-                                    }  
+                                    }
                                     Set-Printer @updatePrinterParam
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
@@ -291,7 +291,7 @@ class Printer {
                                     $updatePrinterParam = @{
                                         Name     = $this.Name
                                         PortName = $this.PortName
-                                    }  
+                                    }
                                     Set-Printer @updatePrinterParam
                                     # To clean up we will remove the temp printer port
                                     Remove-PrinterPort -Name $tempPort
@@ -301,15 +301,14 @@ class Printer {
                     } # End Switch currentPortType
                     # The ports were converted the setting will be in the desired state.
                     return
-                } # End If not CurrentPortType 
-                else { 
+                } # End If not CurrentPortType
+                else {
                     switch ($currentPortType) {
                         'PaperCut' {
                             try {
                                 #To get Papercut address you need to look at the registry key
-                                $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty -ErrorAction Stop).HostName                    
-                            }
-                            catch {
+                                $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty -ErrorAction Stop).HostName
+                            } catch {
                                 $currentAddress = ''
                             } # End try/catch CurrentAddress
                             if ($this.Address -ne $currentAddress) {
@@ -329,7 +328,7 @@ class Printer {
                                 Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f "Address", $this.Address, $printerPort.PrinterHostAddress)
                                 $newPrinterPortParams.PrinterHostAddress = $this.Address
                             } # End If Address
-                            if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) { 
+                            if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
                                 if ($this.SNMPCommunity -ne $printerPort.SNMPCommunity) {
                                     Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPCommunity", $this.SNMPCommunity, $printerPort.SNMPCommunity)
                                     $newPrinterPortParams.SNMPCommunity = $this.SNMPCommunity
@@ -338,8 +337,7 @@ class Printer {
                                     Write-Verbose -Message  ($this.Messages.UpdatedDesiredState -f "SNMPIndex", $this.SNMPIndex, $printerPort.SNMPIndex)
                                     $newPrinterPortParams.SNMPDevIndex = $this.SNMPIndex
                                 } # End If SNMPIndex
-                            }
-                            else {
+                            } else {
                                 $newPrinterPortParams.SNMPEnabled = $false
                             }# End If SNMP True
                             # If newPrinterPortParams has more items than just Name the port needs to be updated with new settings
@@ -350,8 +348,7 @@ class Printer {
                     } # End Switch $currentPortType
                 } # end if currentPortType
             } # End If not NewPrinterPort
-        }
-        else {
+        } else {
             if ($null -ne $printer) {
                 $PrinterParams = @{
                     Name = $this.Name
@@ -362,8 +359,7 @@ class Printer {
             if ($null -ne $printerPort) {
                 try {
                     Remove-PrinterPort -Name $this.PortName
-                }
-                catch {
+                } catch {
                     Restart-Service -Name Spooler -Force
                     Remove-PrinterPort -Name $this.PortName
                 }
@@ -373,15 +369,13 @@ class Printer {
     [bool] Test() {
         try {
             $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
-        } 
-        catch {
+        } catch {
             Write-Verbose -Message ($this.Messages.PrinterDoesNotExist -f $this.Name)
             $printer = $null
-        } 
+        }
         try {
             $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
-        } 
-        catch {
+        } catch {
             Write-Verbose -Message ($this.Messages.PrinterPortDoesNotExist -f $this.PortName)
             $printerPort = $null
         }
@@ -411,14 +405,13 @@ class Printer {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName", $printer.PortName, $this.PortName)
                 return $false
             } # End PortName
-            
+
             switch ($printerPort.Description) {
-                "PaperCut TCP/IP Port" {  
+                "PaperCut TCP/IP Port" {
                     try {
                         #To get Papercut address you need to look at the registry key
-                        $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
-                    }
-                    catch {
+                        $currentAddress = (Get-Item ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName
+                    } catch {
                         $currentAddress = $null
                     }
                     if ($this.Address -ne $currentAddress) {
@@ -432,7 +425,7 @@ class Printer {
                         return $false
                     } # End Address
 
-                    # Since SNMPIndex is always set, and the default is 0. We check to make sure 
+                    # Since SNMPIndex is always set, and the default is 0. We check to make sure
                     if ($this.SNMPIndex -ne 0 -and -not [string]::IsNullOrEmpty($this.SNMPCommunity)) {
                         if ($this.SNMPCommunity -ne $printerPort.SNMPCommunity) {
                             Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "SNMPCommunity", $printerPort.SNMPCommunity, $this.SNMPCommunity)
@@ -451,10 +444,9 @@ class Printer {
 
                 } # End Default
             } # End Switch
-            # All the conditions have been met so we will return true so the set() method doesn't get called as everything is in a desired state. 
+            # All the conditions have been met so we will return true so the set() method doesn't get called as everything is in a desired state.
             return $true
-        }
-        else {
+        } else {
             if ($null -ne $printer) {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Ensure", "Present", $this.Ensure)
                 return $false
@@ -466,26 +458,24 @@ class Printer {
             return $true
         } # End Ensure
     } # End Test()
-    [Printer] Get() { 
+    [Printer] Get() {
         $ReturnObject = [Printer]::new()
         # Gathering the printer properties
         try {
             $printer = Get-Printer -Name $this.Name -Full -ErrorAction Stop
-        }
-        catch {
+        } catch {
             $ReturnObject.Ensure = [Ensure]::Absent
             return $ReturnObject
-        } 
+        }
         try {
             $printerPort = Get-PrinterPort -Name $this.PortName -ErrorAction Stop
-        }
-        catch {
+        } catch {
             $ReturnObject.Ensure = [Ensure]::Absent
             return $ReturnObject
         }
         # Both the printer and the printer port were found so we are going to set Ensure to Present
         $ReturnObject.Ensure = [Ensure]::Present
-        if ($null -ne $printer) { 
+        if ($null -ne $printer) {
             $ReturnObject.Name = $printer.Name
             $ReturnObject.DriverName = $printer.DriverName
             $ReturnObject.Shared = $printer.Shared
@@ -494,12 +484,11 @@ class Printer {
         if ($null -ne $printerPort) {
             $ReturnObject.PortName = $printerPort.Name
             switch ($printerPort.Description) {
-                "PaperCut TCP/IP Port" {  
+                "PaperCut TCP/IP Port" {
                     try {
                         #To get Papercut address you need to look at the registry key
-                        $ReturnObject.Address = (Get-Item -Path ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName                    
-                    }
-                    catch {
+                        $ReturnObject.Address = (Get-Item -Path ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName) | Get-ItemProperty).HostName
+                    } catch {
                         $ReturnObject.Address = $null
                     }
                     #SNMP is disabled on papercut ports
@@ -515,35 +504,35 @@ class Printer {
                     if ($printerPort.lprQueueName) {
                         $ReturnObject.lprQueueName = $printerPort.lprQueueName
                         $ReturnObject.PortType = [PortType]::LPR
-                    } 
+                    }
                 } # End Default
             } # End Switch
         } # End PrinterPort
         return $ReturnObject
     } # End GET()
     hidden [void] CreatePaperCutPort() {
-        # To create the PaperCut port we need to create a registry key however we can't use new-item due to 'PaperCut TCP/IP Port' the cmdlet switches / to a \. 
+        # To create the PaperCut port we need to create a registry key however we can't use new-item due to 'PaperCut TCP/IP Port' the cmdlet switches / to a \.
         # Using the 'PaperCut TCP$([char]0x002f)IP Port' does not work. So we are just using reg.exe to add the key
         # Wrapping the Reg.exe commands in invoke-command to be able to create tests
-        $null = Invoke-Command -ScriptBlock { 
+        $null = Invoke-Command -ScriptBlock {
             param(
                 [Parameter()]$PortName,
                 [Parameter()]$Address
             )
             & "$env:windir\System32\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v HostName /t REG_SZ /d $Address /f
             # Sets the port number to 9100
-            & "$env:windir\System32\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v PortNumber /t REG_DWORD /d 0x0000238c /f          
+            & "$env:windir\System32\reg.exe" ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\$PortName" /v PortNumber /t REG_DWORD /d 0x0000238c /f
         } -ArgumentList ($this.PortName, $this.Address)
         # Need to restart the spooler service before the port is usable
         Restart-Service -Name 'Spooler' -Force
     } # End CreatePaperCutPort()
     hidden [System.String] FindPortType() {
         # Gathering the port information
-        $getPortInformation = Get-CimInstance -Query ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName) 
+        $getPortInformation = Get-CimInstance -Query ("Select Protocol,Description From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $this.PortName)
 
         switch ($getPortInformation.Protocol) {
             1 {
-                # TCPIP  
+                # TCPIP
                 return [PortType]::TCPIP
             } # End 1
             2 {
@@ -562,13 +551,13 @@ class Printer {
         # We do a while loop to make sure the port name doesn't already exist
         $tempPortName = -join (1..9 | Get-Random -Count 5)
         while ($null -ne (Get-CimInstance -Query ("Select Name From Win32_TCPIpPrinterPort WHERE Name = '{0}'" -f $tempPortName)) ) {
-            # We need to generate a new portName and then restart the 
+            # We need to generate a new portName and then restart the
             $tempPortName = -join (1..9 | Get-Random -Count 5)
         }
 
         $tempPrinterPortParams = @{
             Name               = $tempPortName
-            PrinterHostAddress = $this.Address 
+            PrinterHostAddress = $this.Address
         } # End PrinterPortParams
 
         Add-PrinterPort @tempPrinterPortParams
