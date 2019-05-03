@@ -1,28 +1,38 @@
-$Global:ModuleName = 'PrintManagementDsc'
-$Global:DscResourceName = 'PrinterDriver'
-
 #region HEADER
-# Unit Test Template Version: 1.1.0
-[string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$script:dscModuleName = 'PrintManagementDsc'
+$script:dscResourceName = 'PrinterDriver'
+
+# Unit Test Template Version: 1.2.4
+$script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
     (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
+    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath 'DscResource.Tests'))
 }
 
-Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
+Import-Module -Name (Join-Path -Path $script:moduleRoot -ChildPath (Join-Path -Path 'DSCResource.Tests' -ChildPath 'TestHelper.psm1')) -Force
+$testEnvironmentParam = @{
+    DSCModuleName   = $script:dscModuleName
+    DSCResourceName = $script:dscResourceName
+    TestType        = 'Unit'
+    ResourceType    = 'Class'
+}
+$TestEnvironment = Initialize-TestEnvironment @testEnvironmentParam
 
-$TestEnvironment = Initialize-TestEnvironment `
-    -DSCModuleName $Global:ModuleName `
-    -DSCResourceName $Global:DscResourceName `
-    -TestType Unit `
-    -ResourceType Class
+#endregion HEADER
+
+function Invoke-TestSetup {
+}
+
+function Invoke-TestCleanup {
+    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+}
 #endregion HEADER
 
 # Begin Testing
 try {
     #region HEADER
 
-    InModuleScope -ModuleName $Global:DscResourceName {
+    InModuleScope -ModuleName $script:dscResourceName {
         # Region PrinterDriver
         $testPresentParams = @{
             Ensure  = [Ensure]::Present
