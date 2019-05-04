@@ -558,17 +558,20 @@ try {
             BeforeEach {
                 Mock -CommandName Get-PrinterDriver
                 Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter { $name -eq 'myName' }
-                Mock -CommandName Remove-PrinterDriver -ParameterFilter { $name -eq 'myName' }
                 Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter { $name -eq 'myName1' }
-                Mock -CommandName Remove-PrinterDriver  -ParameterFilter { $name -eq 'myName1' }
                 Mock -CommandName Get-PrinterDriver -MockWith { throw } -ParameterFilter { $name -eq 'myName2' }
+
+                Mock -CommandName Remove-PrinterDriver -ParameterFilter { $name -eq 'myName' }
+                Mock -CommandName Remove-PrinterDriver  -ParameterFilter { $name -eq 'myName1' }
                 Mock -CommandName Remove-PrinterDriver -ParameterFilter { $name -eq 'myName2' }
+
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter { $driver -eq 'C:\WINDOWS\System32\DriverStore\FileRepository\myName\myName.inf' -and $Online }
-                Mock -CommandName Invoke-Command
                 Mock -CommandName Get-WindowsDriver -MockWith { return $windowsPrintDrivermyName } -ParameterFilter { $Online -and $Driver -eq 'oem10.inf' }
+
+                Mock -CommandName Add-PrinterDriver
+                Mock -CommandName Invoke-Command
                 Mock -CommandName Write-Warning
                 Mock -CommandName Write-Error
-                Mock -CommandName Add-PrinterDriver
             } # End BeforeEach
 
             Context 'Set Ensure Absent' {
