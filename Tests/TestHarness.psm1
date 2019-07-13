@@ -18,13 +18,15 @@ function Invoke-TestHarness
 
     $testCoverageFiles = @()
     Get-ChildItem -Path "$repoDir\modules\$moduleName\DSCClassResources\**\*.psm1" -Recurse | ForEach-Object {
-        if ($_.FullName -notlike '*\DSCResource.Tests\*') {
+        if ($_.FullName -notlike '*\DSCResource.Tests\*')
+        {
             $testCoverageFiles += $_.FullName
         }
     }
 
     $testResultSettings = @{ }
-    if ([String]::IsNullOrEmpty($TestResultsFile) -eq $false) {
+    if ([String]::IsNullOrEmpty($TestResultsFile) -eq $false)
+    {
         $testResultSettings.Add('OutputFormat', 'NUnitXml' )
         $testResultSettings.Add('OutputFile', $TestResultsFile)
     }
@@ -44,9 +46,9 @@ function Invoke-TestHarness
     if ($PSBoundParameters.ContainsKey('DscTestsPath') -eq $true)
     {
         $getChildItemParameters = @{
-            Path = $DscTestsPath
+            Path    = $DscTestsPath
             Recurse = $true
-            Filter = '*.Tests.ps1'
+            Filter  = '*.Tests.ps1'
         }
 
         # Get all tests '*.Tests.ps1'.
