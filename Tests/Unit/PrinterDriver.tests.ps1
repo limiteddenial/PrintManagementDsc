@@ -1,3 +1,4 @@
+[Microsoft.DscResourceKit.UnitTest(ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 #region HEADER
 $script:dscModuleName = 'PrintManagementDsc'
 $script:dscResourceName = 'PrinterDriver'
@@ -5,7 +6,8 @@ $script:dscResourceName = 'PrinterDriver'
 # Unit Test Template Version: 1.2.4
 $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+{
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath 'DscResource.Tests'))
 }
 
@@ -20,16 +22,19 @@ $TestEnvironment = Initialize-TestEnvironment @testEnvironmentParam
 
 #endregion HEADER
 
-function Invoke-TestSetup {
+function Invoke-TestSetup
+{
 }
 
-function Invoke-TestCleanup {
+function Invoke-TestCleanup
+{
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
 }
 #endregion HEADER
 
 # Begin Testing
-try {
+try
+{
     #region HEADER
 
     InModuleScope -ModuleName $script:dscResourceName {
@@ -851,7 +856,9 @@ try {
             }
         } # End Describe for InstalledDriver Method
     } # End InModuleScope
-} finally {
+}
+finally
+{
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion

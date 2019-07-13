@@ -1,3 +1,4 @@
+[Microsoft.DscResourceKit.UnitTest(ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 [cmdletbinding()]
 Param()
 
@@ -474,7 +475,7 @@ try
             }
             Function Remove-PrinterPort
             {
-                [Cmdletbinding()] param($name)
+                [Cmdletbinding()] param( [Parameter] $name )
             }
             Function Add-PrinterPort
             {
@@ -484,7 +485,10 @@ try
             }
             Function Set-WmiInstance
             {
-                [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject, $Arguments, $PutType )
+                [CmdletBinding()] param (
+                    [Parameter(ValueFromPipeline = $true)] $InputObject,
+                    [Parameter] $Arguments,
+                    [Parameter] $PutType )
             }
 
             BeforeEach {
