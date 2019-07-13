@@ -16,6 +16,8 @@ if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCR
 
 Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
 
+Start-Service -Name Spooler
+
 $TestEnvironment = Initialize-TestEnvironment `
     -DSCModuleName $Global:ModuleName `
     -DSCResourceName $Global:DscResourceName `
