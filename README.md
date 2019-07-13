@@ -41,7 +41,7 @@ Manages what print drivers are installed on a host.
 
 #### PrinterDriver Examples
 
-* [Add a printer driver](Modules/PrintManagementDsc/Examples/PrinterDriver.ps1)
+* [Add a printer driver](Examples/PrinterDriver.ps1)
 
 ### Printer
 
@@ -67,4 +67,4 @@ Manages printers installed on a host.
 
 #### Examples Printer
 
-* [Add a printer](Modules/PrintManagementDsc/Examples/Printer.ps1)
+* [Add a printer](Examples/Printer.ps1)
