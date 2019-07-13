@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 2)]
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 2, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'Printer'
 
@@ -7,7 +7,8 @@ $script:DSCResourceName = 'Printer'
 [string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path)))
 
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+{
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 
@@ -20,13 +21,15 @@ $TestEnvironment = Initialize-TestEnvironment `
 
 Start-Service -Name Spooler
 Write-Warning -Message "Listing all drivers installed"
-foreach ($driver in (Get-PrinterDriver).Name) {
+foreach ($driver in (Get-PrinterDriver).Name)
+{
     Write-Warning -Message "Found driver: $driver"
 }
 
 
 # Using try/finally to always cleanup even if something awful happens.
-try {
+try
+{
     #region Integration Tests
     $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath "$($script:DSCResourceName).config.ps1"
     . $ConfigFile -Verbose -ErrorAction Stop
@@ -77,7 +80,8 @@ try {
     } # End Describe
     #endRegion
 } # End Try
-finally {
+finally
+{
 
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment

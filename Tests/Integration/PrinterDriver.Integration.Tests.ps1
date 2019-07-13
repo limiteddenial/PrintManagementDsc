@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 1)]
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 1, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
 
@@ -7,7 +7,8 @@ $script:DSCResourceName = 'PrinterDriver'
 [string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+{
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 
@@ -28,7 +29,8 @@ Start-Service -Name Spooler
 
 # Using try/finally to always cleanup even if something awful happens.
 
-try {
+try
+{
     #region Integration Tests
 
 
@@ -118,7 +120,8 @@ try {
     } # End Describe
     #endregion
 } # End Try
-finally {
+finally
+{
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion
