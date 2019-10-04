@@ -3,7 +3,7 @@ param ()
 
 $Global:ModuleName = 'PrintManagementDsc'
 $Global:DscResourceName = 'Printer'
-
+$VerbosePreference = 'Continue'
 #region HEADER
 # Unit Test Template Version: 1.1.0
 [string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -156,6 +156,7 @@ try
         # End Region
         Describe 'Test Method' {
             BeforeEach {
+                Mock -CommandName Get-Printer -ParameterFilter { Write-Verbose -Message "Unmocked Name: $Name" -Verbose }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter { $Name -eq 'myLPRPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter { $Name -eq 'myPaperCutPrinter' }
@@ -369,11 +370,14 @@ try
         } # end describe test method
         Describe 'Get Method' {
             BeforeEach {
+                Mock -CommandName Get-Printer -ParameterFilter { Write-Verbose -Message "Unmocked Name: $Name" -Verbose }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter { $Name -eq 'myLPRPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter { $Name -eq 'myPaperCutPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter { $Name -eq 'myPrinterSNMP' }
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
+
+                Mock -CommandName Get-PrinterPort -ParameterFilter { Write-Verbose -Message "Unmocked PrintPort Name: $Name" -Verbose }
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter { $Name -eq 'myPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter { $Name -eq 'myLPRPrinterPort' }
@@ -505,12 +509,14 @@ try
                 Mock -CommandName Remove-PrinterPort
                 Mock -CommandName Add-PrinterPort
 
+                Mock -CommandName Get-Printer -ParameterFilter { Write-Verbose -Message "Unmocked Name: $Name" -Verbose }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter { $Name -eq 'myLPRPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter { $Name -eq 'myPaperCutPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter { $Name -eq 'myPrinterSNMP' }
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
 
+                Mock -CommandName Get-PrinterPort -ParameterFilter { Write-Verbose -Message "Unmocked PrintPort Name: $Name" -Verbose }
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter { $Name -eq 'myPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter { $Name -eq 'myLPRPrinterPort' }
@@ -518,6 +524,7 @@ try
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter { $Name -eq 'myPrinterPortSNMP' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter { $Name -eq 'myBadPortName' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myNewPrinterPort } -ParameterFilter { $Name -eq 'newPrinterPort' }
+
 
                 Mock -CommandName Get-PrinterDriver -MockWith { return $myDriver } -ParameterFilter { $Name -eq 'myDriver' }
                 Mock -CommandName Get-PrinterDriver -MockWith { return $newDriver } -ParameterFilter { $Name -eq 'newDriver' }
