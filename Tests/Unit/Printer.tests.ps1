@@ -1,6 +1,6 @@
-[Microsoft.DscResourceKit.UnitTest(ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
+[Microsoft.DscResourceKit.UnitTest(OrderNumber = 1, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 [cmdletbinding()]
-Param()
+param ()
 
 $Global:ModuleName = 'PrintManagementDsc'
 $Global:DscResourceName = 'Printer'
@@ -15,8 +15,6 @@ if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCR
 }
 
 Import-Module (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
-
-Start-Service -Name Spooler
 
 $TestEnvironment = Initialize-TestEnvironment `
     -DSCModuleName $Global:ModuleName `
@@ -250,7 +248,7 @@ try
                 }
             }
 
-            Function Get-ItemProperty
+            function Get-ItemProperty
             {
                 [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path )
             }
@@ -415,7 +413,7 @@ try
                 } # End It
             } # End Context Get Ensure Absent
 
-            Function Get-ItemProperty
+            function Get-ItemProperty
             {
                 [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $Path )
             }
@@ -471,21 +469,21 @@ try
             }
         }
         Describe 'Set Method' {
-            Function Remove-PrintJob
+            function Remove-PrintJob
             {
                 [CmdletBinding()] param ( [Parameter(ValueFromPipeline = $true)] $InputObject )
             }
-            Function Remove-PrinterPort
+            function Remove-PrinterPort
             {
-                [Cmdletbinding()] param( [Parameter] $name )
+                [Cmdletbinding()] param ( [Parameter] $name )
             }
-            Function Add-PrinterPort
-            {
-            }
-            Function Remove-PrinterPort
+            function Add-PrinterPort
             {
             }
-            Function Set-WmiInstance
+            function Remove-PrinterPort
+            {
+            }
+            function Set-WmiInstance
             {
                 [CmdletBinding()] param (
                     [Parameter(ValueFromPipeline = $true)] $InputObject,
