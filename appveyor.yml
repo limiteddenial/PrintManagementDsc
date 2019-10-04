@@ -8,6 +8,8 @@ environment:
         secure: jgLdwjxXArQp5UMHQNhyTv2XP/HjdSH3ndQ1cNV17fpoSwRQBRw8bEIdYp1rTXcC
 install:
     - git clone https://github.com/PowerShell/DscResource.Tests
+
+    - ps: Start-Service -Name Spooler
     - ps: |
           $moduleName = 'PrintManagementDsc'
           Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
