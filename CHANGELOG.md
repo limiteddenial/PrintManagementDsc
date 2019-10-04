@@ -1,4 +1,4 @@
-# Change log for PrintManagementDsc Module
+# Changelog
 
 ## Unreleased
 
