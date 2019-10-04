@@ -17,6 +17,7 @@
         "Codecov",
         "dism",
         "DWORD",
+        "endregion",
         "GUID",
         "Hashtable",
         "HKEY",
@@ -35,7 +36,8 @@
         "SWRC",
         "TCPIP",
         "windir",
-        "windowsservercore"
+        "windowsservercore",
+        "wsdprint"
     ],
     "ignoreRegExpList": [
         "AppVeyor",
