@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 1, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 3, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
 
