@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.UnitTest(OrderNumber = 1, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
+[Microsoft.DscResourceKit.UnitTest(OrderNumber = 1)]
 [cmdletbinding()]
 param ()
 

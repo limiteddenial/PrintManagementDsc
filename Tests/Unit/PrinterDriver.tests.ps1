@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.UnitTest(OrderNumber = 2, ContainerName = 'WindowsCore', ContainerImage = 'microsoft/windowsservercore:latest')]
+[Microsoft.DscResourceKit.UnitTest(OrderNumber = 2)]
 #region HEADER
 $script:dscModuleName = 'PrintManagementDsc'
 $script:dscResourceName = 'PrinterDriver'
