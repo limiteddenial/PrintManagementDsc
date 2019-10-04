@@ -1,4 +1,3 @@
-[Microsoft.DscResourceKit.UnitTest(OrderNumber = 1)]
 [cmdletbinding()]
 param ()
 

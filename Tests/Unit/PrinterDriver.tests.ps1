@@ -1,4 +1,3 @@
-[Microsoft.DscResourceKit.UnitTest(OrderNumber = 2)]
 #region HEADER
 $script:dscModuleName = 'PrintManagementDsc'
 $script:dscResourceName = 'PrinterDriver'
