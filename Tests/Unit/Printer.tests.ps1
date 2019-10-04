@@ -486,8 +486,8 @@ try
             {
                 [CmdletBinding()] param (
                     [Parameter(ValueFromPipeline = $true)] $InputObject,
-                    [Parameter] $Arguments,
-                    [Parameter] $PutType )
+                    [Parameter()] [hashtable]$Arguments,
+                    [Parameter()] $PutType )
             }
 
             BeforeEach {
