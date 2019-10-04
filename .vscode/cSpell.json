@@ -1,4 +1,5 @@
 {
+    "version": "0.1",
     "ignorePaths": [
         ".git/*",
         ".vscode/*",
@@ -33,7 +34,8 @@
         "SNMP",
         "SWRC",
         "TCPIP",
-        "windir"
+        "windir",
+        "windowsservercore"
     ],
     "ignoreRegExpList": [
         "AppVeyor",
