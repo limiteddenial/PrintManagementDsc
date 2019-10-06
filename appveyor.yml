@@ -3,6 +3,8 @@
 #      environment configuration  #
 #---------------------------------#
 version: 2.0.{build}.0
+image:
+    - Visual Studio 2017
 environment:
     gallery_api:
         secure: jgLdwjxXArQp5UMHQNhyTv2XP/HjdSH3ndQ1cNV17fpoSwRQBRw8bEIdYp1rTXcC
