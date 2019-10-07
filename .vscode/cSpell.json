@@ -1,4 +1,5 @@
 {
+    "version": "0.1",
     "ignorePaths": [
         ".git/*",
         ".vscode/*",
@@ -16,6 +17,7 @@
         "Codecov",
         "dism",
         "DWORD",
+        "endregion",
         "GUID",
         "Hashtable",
         "HKEY",
@@ -33,7 +35,9 @@
         "SNMP",
         "SWRC",
         "TCPIP",
-        "windir"
+        "windir",
+        "windowsservercore",
+        "wsdprint"
     ],
     "ignoreRegExpList": [
         "AppVeyor",

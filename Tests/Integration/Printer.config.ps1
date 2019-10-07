@@ -20,7 +20,7 @@ $TestPrinterTCPIP = [PSObject]@{
     SNMPIndex     = 1
     SNMPCommunity = 'public'
 }
-[string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
+[string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 Configuration Printer_Config
 {
@@ -35,14 +35,16 @@ Configuration Printer_Config
 
     Node $NodeName
     {
-        PrinterDriver Integration_Driver {
+        PrinterDriver Integration_Driver
+        {
             Ensure  = 'Present'
             Name    = 'Generic / Text Only'
             Version = '6.1.7600.16385'
             Source  = "$script:moduleRoot\IntegrationDriver\prnge001.inf"
         } # End PrinterDriver
 
-        Printer TCPIP-Printer {
+        Printer TCPIP-Printer
+        {
             Ensure        = $TestPrinterTCPIP.Ensure
             Name          = $TestPrinterTCPIP.Name
             PortType      = $TestPrinterTCPIP.PortType
@@ -54,7 +56,8 @@ Configuration Printer_Config
             SNMPIndex     = $TestPrinterTCPIP.SNMPIndex
         }
 
-        Printer LPRPrinter {
+        Printer LPRPrinter
+        {
             Ensure       = $TestPrinterLPR.Ensure
             Name         = $TestPrinterLPR.Name
             PortType     = $TestPrinterLPR.PortType

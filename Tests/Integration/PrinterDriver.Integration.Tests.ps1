@@ -1,13 +1,14 @@
-[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 1)]
+[Microsoft.DscResourceKit.IntegrationTest(OrderNumber = 3)]
 $script:DSCModuleName = 'PrintManagementDsc'
 $script:DSCResourceName = 'PrinterDriver'
 
 #region HEADER
 # Integration Test Template Version: 1.1.0
-[string] $script:moduleRoot = Join-Path -Path $(Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))) -ChildPath 'Modules\PrintManagementDsc'
+[string] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) ) {
+    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+{
     & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath '\DSCResource.Tests\'))
 }
 
@@ -28,9 +29,10 @@ Start-Service -Name Spooler
 
 # Using try/finally to always cleanup even if something awful happens.
 
-try {
+try
+{
     #region Integration Tests
-    
+
 
     Describe "$($script:DSCResourceName)_Integration - Adding Driver" {
         $configData = @{
@@ -71,7 +73,7 @@ try {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
             $current[0].Name | Should -Be $configData.AllNodes[0].Name
-            $current[0].Version  | Should -Be $configData.AllNodes[0].Version
+            $current[0].Version | Should -Be $configData.AllNodes[0].Version
         }
     } # End Describe
     Describe "$($script:DSCResourceName)_Integration - Removing Driver" {
@@ -113,12 +115,13 @@ try {
                 $_.ConfigurationName -eq "$($script:DSCResourceName)_Config"
             }
             $current[0].Ensure | Should -Be $configData.AllNodes[0].Ensure
-            
+
         }
     } # End Describe
     #endregion
 } # End Try
-finally {
+finally
+{
     #region FOOTER
     Restore-TestEnvironment -TestEnvironment $TestEnvironment
     #endregion

@@ -1,19 +1,25 @@
+---
 #---------------------------------#
 #      environment configuration  #
 #---------------------------------#
-version: 2.0.0.{build}
+version: 2.0.{build}.0
+image:
+    - Visual Studio 2017
+environment:
+    gallery_api:
+        secure: jgLdwjxXArQp5UMHQNhyTv2XP/HjdSH3ndQ1cNV17fpoSwRQBRw8bEIdYp1rTXcC
 install:
     - git clone https://github.com/PowerShell/DscResource.Tests
+
+    - ps: Start-Service -Name Spooler
     - ps: |
-        $moduleName = 'PrintManagementDsc'
-        $mainModuleFolder = "Modules\$moduleName"
-        Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
-        Invoke-AppveyorInstallTask
+          $moduleName = 'PrintManagementDsc'
+          Import-Module -Name "$env:APPVEYOR_BUILD_FOLDER\DscResource.Tests\AppVeyor.psm1"
+          Invoke-AppveyorInstallTask
 
 #---------------------------------#
 #     services configuration      #
 #---------------------------------#
-
 
 #---------------------------------#
 #      build configuration        #
@@ -27,10 +33,11 @@ build: false
 
 test_script:
     - ps: |
-        Invoke-AppveyorTestScriptTask `
-            -Type 'Harness' `
-            -MainModulePath $mainModuleFolder `
-            -CodeCovIo
+          Invoke-AppveyorTestScriptTask `
+              -CodeCoverage `
+              -CodeCovIo `
+              -RunTestInOrder
+
 #---------------------------------#
 #      deployment configuration   #
 #---------------------------------#

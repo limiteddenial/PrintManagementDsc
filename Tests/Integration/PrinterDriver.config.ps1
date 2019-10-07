@@ -11,12 +11,13 @@ Configuration PrinterDriver_Config
 
     Node $NodeName
     {
-        PrinterDriver Integration_Test {
-            Ensure = $Node.Ensure
-            Name = $Node.Name
+        PrinterDriver Integration_Test
+        {
+            Ensure  = $Node.Ensure
+            Name    = $Node.Name
             Version = $Node.Version
-            Source = $Node.Source
-            Purge = $Node.Purge
+            Source  = $Node.Source
+            Purge   = $Node.Purge
         } # End PrinterDriver
     } # End Node
 } # End Configuration
