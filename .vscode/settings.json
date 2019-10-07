@@ -1,4 +1,10 @@
 {
+    "[markdown]": {
+        "editor.tabSize": 2
+    },
+    "[powershell]": {
+        "editor.tabSize": 4
+    },
     "editor.tabSize": 4,
     "powershell.scriptAnalysis.settingsPath": ".vscode\\PSScriptAnalyzerSettings.psd1",
     "powershell.codeFormatting.preset": "Allman",
