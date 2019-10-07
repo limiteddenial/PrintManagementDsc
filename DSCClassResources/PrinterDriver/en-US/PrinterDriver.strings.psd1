@@ -14,6 +14,6 @@ ConvertFrom-StringData @'
     RemovingDriverMessage=Removing driver {0}.
     RemovingPrintDriver=Removing Print Driver {0}.
     SourceNotFound=Source {0} does not exist.
-    StagedDriverMessage=Successfully staged driver {0} to {1}.
+    StagedDriverMessage=Successfully staged driver to {0}.
     UpdatedDesiredState={0} will be updated to match desired state. New value: {1} - Old Value: {2}
 '@

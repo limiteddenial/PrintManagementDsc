@@ -49,7 +49,7 @@ class PrinterDriver
                 if ($successDriverAdd.Success)
                 {
                     $this.Source = (Get-WindowsDriver -Driver $successDriverAdd.Groups['Driver'].Value -Online).OriginalFileName[0]
-                    Write-Verbose -Message  ($this.Messages.StagedDriverMessage -f $this.Name, $this.Source)
+                    Write-Verbose -Message  ($this.Messages.StagedDriverMessage -f $this.Source)
                 } # End if DriverAdded
                 else
                 {
