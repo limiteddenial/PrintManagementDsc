@@ -15,15 +15,15 @@ Configuration Example
 
     Node $NodeName
     {
-        Printer NewLPRPrinter {
-            Ensure       = 'Present'
-            Name         = 'ExampleLPRPrinter'
-            PortType     = 'LPR'
-            PortName     = 'ExamplePort'
-            Address      = 'Example.local'
-            DriverName   = 'fake'
-            LprQueueName = 'testQueue'
-            Shared       = $false
+        Printer NewTCPIPPrinter {
+            Ensure     = 'Present'
+            Name       = 'ExampleTCPIPPrinter'
+            PortType   = 'TCPIP'
+            PortName   = 'ExampleTCPIPPort'
+            Address    = 'tcpip.local'
+            DriverName = 'fake'
+            Shared     = $true
         } # End Printer
+
     } # End Node
 } # End Configuration
