@@ -1,6 +1,6 @@
 <#
-    .EXAMPLE
-        Installs a print driver. 
+    .DESCRIPTION
+        Installs a print driver
 #>
 Configuration Example {
     param
@@ -12,9 +12,9 @@ Configuration Example {
 
     Import-DSCResource -ModuleName PrintManagementDsc
 
-    Node $NodeName 
+    Node $NodeName
     {
-        PrinterDriver XeroxGlobal 
+        PrinterDriver XeroxGlobal
         {
             Ensure = "Present"
             Name = "Xerox Global Print Driver PCL6"

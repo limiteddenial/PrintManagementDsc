@@ -1,6 +1,6 @@
 <#
-    .EXAMPLE
-        Installs a print driver.
+    .DESCRIPTION
+        Installs multiple print drivers from the same source inf file
 #>
 Configuration Example {
     param

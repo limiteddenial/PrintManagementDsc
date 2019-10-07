@@ -1,6 +1,6 @@
 <#
-    .EXAMPLE
-        Adds two printers, one using TCPIP port and other using LPR for communication
+    .DESCRIPTION
+        Adds a printer using TCPIP for communication
 #>
 Configuration Example
 {
