@@ -1,3 +1,4 @@
+[Microsoft.DscResourceKit.UnitTest(ContainerName = 'windowsservercore', ContainerImage = 'microsoft/windowsservercore')]
 [cmdletbinding()]
 param ()
 
@@ -1159,7 +1160,7 @@ try
                 Mock -CommandName Set-Printer -ParameterFilter { Write-Warning -Message "Setting Printer : $PortName" }
             }
 
-            it 'Should create port with name 111111111' {
+            It 'Should create port with name 111111111' {
                 $useTempPortParams = [Printer]$testPresentParams
 
                 Mock -CommandName Get-Random -MockWith { return 1 }
@@ -1168,7 +1169,7 @@ try
                 $useTempPortParams.useTempPort() | Should -Be '111111111'
             }
 
-            it 'Should create port with name 222222222' {
+            It 'Should create port with name 222222222' {
                 $useTempPortParams = [Printer]$testPresentParams
 
                 $script:mockCounter = 1
