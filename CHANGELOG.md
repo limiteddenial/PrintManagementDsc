@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## 2.0.0.0
 
+* Added deploy step
 * Added Unit and Integration tests
 * Changed the default for _SNMPEnabled_ to `$false` for resource _Printer_
-* Changed resource from cPrinterManagement to PrintManagementDsc to meet updated naming convention
+* **Breaking Change** Changed resource from cPrinterManagement to PrintManagementDsc to meet updated naming convention
+  * `cPrinter` -> `Printer`
+  * `cPrintDriver` -> `PrinterDriver`
 * Converted cPrinter resource to a PowerShell class
 * Added tests for cPrinter resource
 * Added Appveyor testing
