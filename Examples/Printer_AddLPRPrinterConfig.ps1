@@ -1,8 +1,13 @@
+<#PSScriptInfo
+.VERSION 2.0.0.0
+.GUID 29a5af75-b176-4b70-8872-7d557f5fc1ee
+#>
+
 <#
     .DESCRIPTION
         Adds a printer using LPR for communication
 #>
-Configuration Example
+configuration Example
 {
     param
     (
@@ -13,7 +18,7 @@ Configuration Example
 
     Import-DSCResource -ModuleName PrintManagementDsc
 
-    Node $NodeName
+    node $NodeName
     {
         Printer NewLPRPrinter {
             Ensure       = 'Present'

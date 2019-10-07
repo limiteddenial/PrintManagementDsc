@@ -1,8 +1,13 @@
+<#PSScriptInfo
+.VERSION 2.0.0.0
+.GUID e63dab79-d613-4975-92d2-4d1283fa852e
+#>
+
 <#
     .DESCRIPTION
         Adds a printer using TCPIP for communication
 #>
-Configuration Example
+configuration Example
 {
     param
     (
@@ -13,7 +18,7 @@ Configuration Example
 
     Import-DSCResource -ModuleName PrintManagementDsc
 
-    Node $NodeName
+    node $NodeName
     {
         Printer NewTCPIPPrinter {
             Ensure     = 'Present'

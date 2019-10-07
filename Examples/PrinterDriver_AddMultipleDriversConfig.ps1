@@ -1,8 +1,13 @@
+<#PSScriptInfo
+.VERSION 2.0.0.0
+.GUID 313aaa79-c93b-4241-af95-61d1eb899aa4
+#>
+
 <#
     .DESCRIPTION
         Installs multiple print drivers from the same source inf file
 #>
-Configuration Example {
+configuration Example {
     param
     (
         [Parameter()]
@@ -12,17 +17,17 @@ Configuration Example {
 
     Import-DSCResource -ModuleName PrintManagementDsc
 
-    Node $NodeName
+    node $NodeName
     {
         PrinterDriver XeroxGlobal
         {
-            Ensure = "Present"
-            Name = @(
+            Ensure  = "Present"
+            Name    = @(
                 "Xerox Global Print Driver PCL6"
                 "Xerox Global Print Driver PS"
             )
             Version = "1.2.3.4"
-            Source = "C:\Drivers\Xerox\x2UNiVX.inf"
+            Source  = "C:\Drivers\Xerox\x2UNiVX.inf"
         } # End PrinterDriver
     } # End Node
 } # End Configuration
