@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.UnitTest(ContainerName = 'windowsservercore', ContainerImage = 'microsoft/windowsservercore')]
+[Microsoft.DscResourceKit.UnitTest(ContainerName = 'Printer', ContainerImage = 'microsoft/windowsservercore')]
 [cmdletbinding()]
 param ()
 
@@ -183,14 +183,12 @@ try
 
         Describe 'Test Method' {
             BeforeEach {
-                Mock -CommandName Get-Printer -ParameterFilter { Write-Warning -Message "Unmocked Name: $Name" }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter { $Name -eq 'myLPRPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter { $Name -eq 'myPaperCutPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter { $Name -eq 'myPrinterSNMP' }
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
 
-                Mock -CommandName Get-PrinterPort -ParameterFilter { Write-Warning -Message "Unmocked Port Name: $Name" }
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter { $Name -eq 'myPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter { $Name -eq 'myLPRPrinterPort' }
@@ -198,7 +196,6 @@ try
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter { $Name -eq 'myPrinterPortSNMP' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter { $Name -eq 'myBadPortName' }
 
-                Mock -CommandName Get-Item -ParameterFilter {Write-Warning -Message "Unmocked Path: $Path"}
                 Mock -CommandName Get-Item -MockWith { return $testPaperCutRegistryItem } -ParameterFilter { $Path -eq "HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPaperCutPrinterPort" }
 
                 Mock -CommandName Get-ItemProperty -MockWith { return $testPaperCutRegistryItemProperty }
@@ -394,14 +391,12 @@ try
         } # end describe test method
         Describe 'Get Method' {
             BeforeEach {
-                Mock -CommandName Get-Printer -ParameterFilter { Write-Warning -Message "Unmocked Name: $Name" }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinter } -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myLPRPrinter } -ParameterFilter { $Name -eq 'myLPRPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPaperCutPrinter } -ParameterFilter { $Name -eq 'myPaperCutPrinter' }
                 Mock -CommandName Get-Printer -MockWith { return $myPrinterSNMP } -ParameterFilter { $Name -eq 'myPrinterSNMP' }
                 Mock -CommandName Get-Printer -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinter' }
 
-                Mock -CommandName Get-PrinterPort -ParameterFilter { Write-Warning -Message "Unmocked PrintPort Name: $Name" }
                 Mock -CommandName Get-PrinterPort -MockWith { throw } -ParameterFilter { $Name -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPort } -ParameterFilter { $Name -eq 'myPrinterPort' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myLPRPrinterPort } -ParameterFilter { $Name -eq 'myLPRPrinterPort' }
@@ -409,7 +404,6 @@ try
                 Mock -CommandName Get-PrinterPort -MockWith { return $myPrinterPortSNMP } -ParameterFilter { $Name -eq 'myPrinterPortSNMP' }
                 Mock -CommandName Get-PrinterPort -MockWith { return $myBadPortName } -ParameterFilter { $Name -eq 'myBadPortName' }
 
-                Mock -CommandName Get-Item -ParameterFilter { Write-Warning -Message "Unmocked Get-Item Path: $Path"}
                 Mock -CommandName Get-Item -MockWith { return $testPaperCutRegistryItem } -ParameterFilter { $Path -eq "HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\myPaperCutPrinterPort" }
                 Mock -CommandName Get-ItemProperty -MockWith { return $testPaperCutRegistryItemProperty }
             }
@@ -494,11 +488,10 @@ try
         }
         Describe 'Set Method' {
             BeforeEach {
-                Mock -CommandName Add-Printer -ParameterFilter { Write-Warning -Message "Unmocked Add-Printer Name: $Name " }
                 Mock -CommandName Add-Printer -ParameterFilter { $Name -eq 'myPrinter' }
                 Mock -CommandName Add-Printer -ParameterFilter { $Name -eq 'myAbsentPrinter' }
 
-                Mock -CommandName Set-Printer -ParameterFilter { Write-Warning -Message "Unmocked Set-Printer - Name: $Name - Port: $PortName - DriverName: $DriverName"}
+                Mock -CommandName Set-Printer
                 Mock -CommandName Set-Printer -ParameterFilter { $Name -eq 'myPrinter' -and $PortName -eq 'myAbsentPrinterPort' }
                 Mock -CommandName Set-Printer -ParameterFilter { $Name -eq 'myPrinter' -and $DriverName -eq 'myDriver' }
                 Mock -CommandName Set-Printer -ParameterFilter { $Name -eq 'myPrinter' -and $Shared -eq $false }
@@ -1156,8 +1149,8 @@ try
         } # End Describe Set Method
         Describe 'UseTempPort Method' {
             BeforeEach {
-                Mock -CommandName Add-PrinterPort -ParameterFilter { Write-Warning -Message "Adding PaperCutPort with Name : $Name" }
-                Mock -CommandName Set-Printer -ParameterFilter { Write-Warning -Message "Setting Printer : $PortName" }
+                Mock -CommandName Add-PrinterPort
+                Mock -CommandName Set-Printer
             }
 
             It 'Should create port with name 111111111' {

@@ -1,4 +1,4 @@
-[Microsoft.DscResourceKit.UnitTest(ContainerName = 'windowsservercore', ContainerImage = 'microsoft/windowsservercore')]
+[Microsoft.DscResourceKit.UnitTest(ContainerName = 'Driver', ContainerImage = 'microsoft/windowsservercore')]
 #region HEADER
 $script:dscModuleName = 'PrintManagementDsc'
 $script:dscResourceName = 'PrinterDriver'
@@ -830,8 +830,7 @@ try
                 } # End it Set should not find print driver
             } # End Set Ensure Present
         } # End Describe Set Method
-        $spoolerStatus = Get-Service -Name Spooler
-        Write-Warning ("Spooler Status: {0}" -f $spoolerStatus.Status)
+
         Describe 'InstalledDriver Method' {
             it 'Should return null' {
                 $absentParam = [PrinterDriver]$testPresentParams
