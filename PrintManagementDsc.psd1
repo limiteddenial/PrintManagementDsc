@@ -114,6 +114,7 @@ PrivateData = @{
         # ReleaseNotes = ''
 
         ExternalModuleDependencies = @('PrintManagement')
+
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable
