@@ -13,8 +13,6 @@
 .PRIVATEDATA 2016-DataCenter,2016-DataCenter-Server-Core
 #>
 
-#Requires -Module PrintManagementDsc
-
 <#
     .DESCRIPTION
     Installs a print driver
