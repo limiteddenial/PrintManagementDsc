@@ -43,3 +43,6 @@ test_script:
 #---------------------------------#
 
 # scripts to run before deployment
+deploy_script:
+    - ps: |
+          Invoke-AppVeyorDeployTask -OptIn PublishExample

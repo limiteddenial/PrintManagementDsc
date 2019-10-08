@@ -41,7 +41,8 @@ Manages what print drivers are installed on a host.
 
 #### PrinterDriver Examples
 
-* [Add a printer driver](Examples/PrinterDriver.ps1)
+* [Add a driver](Examples/PrinterDriver_AddDriver_Config.ps1)
+* [Add multiple drivers from the same driver pack](Examples/PrinterDriver_AddMultipleDrivers_Config.ps1)
 
 ### Printer
 
@@ -67,4 +68,5 @@ Manages printers installed on a host.
 
 #### Examples Printer
 
-* [Add a printer](Examples/Printer.ps1)
+* [Add a printer using LPR](Examples/Printer_AddLPRPrinter_Config.ps1)
+* [Add a printer using TCPIP](Examples/Printer_AddTCPIPPrinter_Config.ps1)
