@@ -19,7 +19,8 @@
     .DESCRIPTION
     Installs a print driver
 #>
-configuration Example {
+configuration PrinterDriver_AddDriver_Config
+{
     param
     (
         [Parameter()]

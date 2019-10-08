@@ -19,7 +19,8 @@
     .DESCRIPTION
     Installs multiple print drivers from the same source inf file
 #>
-configuration Example {
+configuration PrinterDriver_AddMultipleDrivers_Config
+{
     param
     (
         [Parameter()]

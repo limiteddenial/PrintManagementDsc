@@ -19,7 +19,7 @@
     .DESCRIPTION
     Adds a printer using LPR for communication
 #>
-configuration Example
+configuration Printer_AddLPRPrinter_Config
 {
     param
     (

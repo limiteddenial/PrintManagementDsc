@@ -19,7 +19,7 @@
     .DESCRIPTION
     Adds a printer using TCPIP for communication
 #>
-configuration Example
+configuration Printer_AddTCPIPPrinter_Config
 {
     param
     (
