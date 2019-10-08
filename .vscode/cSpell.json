@@ -1,0 +1,55 @@
+{
+    "version": "0.1",
+    "ignorePaths": [
+        ".git/*",
+        ".vscode/*",
+        "Modules/PrintManagementDsc/DscResource.Tests/*",
+        "DscResource.Tests/*"
+    ],
+    "language": "en",
+    "dictionaries": [
+        "powershell"
+    ],
+    "words": [
+        "Boersma",
+        "CIIO",
+        "cmdletbinding",
+        "Codecov",
+        "dism",
+        "DWORD",
+        "endregion",
+        "EXTERNALMODULEDEPENDENCIES",
+        "EXTERNALSCRIPTDEPENDENCIES",
+        "GUID",
+        "Hashtable",
+        "HKEY",
+        "HKLM",
+        "ICONURI",
+        "ilike",
+        "LCSWDTSDRCWDWO",
+        "LICENSEURI",
+        "LPRSNMP",
+        "markdownlint",
+        "OICIIO",
+        "OIIO",
+        "Papercut",
+        "pnputil",
+        "PRIVATEDATA",
+        "PROJECTURI",
+        "PSCOMMANDPATH",
+        "RELEASENOTES",
+        "REQUIREDSCRIPTS",
+        "SDDL",
+        "SNMP",
+        "SWRC",
+        "TCPIP",
+        "windir",
+        "windowsservercore",
+        "wsdprint"
+    ],
+    "ignoreRegExpList": [
+        "AppVeyor",
+        "opencode@microsoft.com",
+        "\\.gitattributes"
+    ]
+}

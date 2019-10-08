@@ -1,0 +1,8 @@
+DscResource.Tests/
+DscResource.Tests/*
+Modules\PrintManagementDsc\DscResource.Tests/
+Modules\PrintManagementDsc\DscResource.Tests/*
+.vscode/*
+!.vscode/cSpell.json
+!.vscode/settings.json
+!.vscode/PSScriptAnalyzerSettings.psd1
