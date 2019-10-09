@@ -47,6 +47,4 @@ after_test:
 #---------------------------------#
 
 deploy_script:
-    - ps: |
-          Invoke-AppveyorAfterTestTask
-          Invoke-AppVeyorDeployTask
+    - ps: Invoke-AppVeyorDeployTask
