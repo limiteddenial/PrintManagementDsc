@@ -170,8 +170,6 @@ class Printer
                     Name       = $this.Name
                     PortName   = $this.PortName
                     DriverName = $this.DriverName
-                    Location   = $this.Location
-                    Comment    = $this.Comment
                 }
                 if ($null -ne $this.PermissionSDDL)
                 {
@@ -181,6 +179,14 @@ class Printer
                 {
                     $addPrinterParam.Shared = $this.Shared
                 } # end if shared
+                if ($null -ne $this.Location)
+                {
+                    $addPrinterParam.Location = $this.Location
+                } # end if Location
+                if ($null -ne $this.Comment)
+                {
+                    $addPrinterParam.Comment = $this.Comment
+                } # end if Comment
 
                 try
                 {
@@ -520,12 +526,12 @@ class Printer
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName", $printer.PortName, $this.PortName)
                 return $false
             } # End PortName
-            if ($this.Location -ne $printer.Location)
+            if ($this.Location -ne [string]$printer.Location)
             {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Location", $printer.Location, $this.Location)
                 return $false
             } # End Location
-            if ($this.Comment -ne $printer.Comment)
+            if ($this.Comment -ne [string]$printer.Comment)
             {
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Comment", $printer.Comment, $this.Comment)
                 return $false
@@ -573,7 +579,7 @@ class Printer
                         } # End SNMPIndex
                     } # End SNMPIndex
 
-                    if ($this.lprQueueName -ne $printerPort.lprQueueName)
+                    if ([string]$this.lprQueueName -ne [string]$printerPort.lprQueueName)
                     {
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName", $printerPort.lprQueueName, $this.lprQueueName)
                         return $false
