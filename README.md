@@ -65,6 +65,8 @@ Manages printers installed on a host.
 * **`[UInt32]` SNMPIndex** _(Write)_: The desired index used for SNMP communication. Requires SNMPCommunity to also be set. This will enable SNMP on the port
     The default value is 1.
 * **`[String]` PermissionsSDDL** _(Write)_: The desired permissions of a printer
+* **`[String]` Location** _(Write)_: The desired Location property of a printer
+* **`[String]` Comment** _(Write)_: The desired Comment property of a printer
 
 #### Examples Printer
 
