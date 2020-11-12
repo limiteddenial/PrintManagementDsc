@@ -65,6 +65,10 @@ class Printer
     [System.String]
     $Comment
 
+    [DscProperty()]
+    [System.Boolean]
+    $Published = $false
+
     hidden $Messages = ""
 
     Printer()
@@ -187,6 +191,10 @@ class Printer
                 {
                     $addPrinterParam.Comment = $this.Comment
                 } # end if Comment
+                if ($null -ne $this.Published)
+                {
+                    $addPrinterParam.Published = $this.Published
+                } # end if Published
 
                 try
                 {
@@ -266,6 +274,14 @@ class Printer
                     # To make changes we need to make sure there are no jobs queued up on the printer
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If Comment
+
+                if ($printer.Published -ne $this.Published)
+                {
+                    $updatePrinterParam.Published = $this.Published
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Published', $this.Published, $printer.Published)
+                    # To make changes we need to make sure there are no jobs queued up on the printer
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                } # End If Published
 
                 <#
                     If the no params are added besides the default name property.
@@ -536,6 +552,11 @@ class Printer
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Comment", $printer.Comment, $this.Comment)
                 return $false
             } # End Comment
+            if ($this.Published -ne $printer.Published)
+            {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Published", $printer.Published, $this.Published)
+                return $false
+            } # End Published
 
             switch ($printerPort.Description)
             {
@@ -637,6 +658,7 @@ class Printer
             $ReturnObject.PermissionSDDL = $printer.PermissionSDDL
             $ReturnObject.Location = $printer.Location
             $ReturnObject.Comment = $printer.Comment
+            $ReturnObject.Published = $printer.Published
         } # End Printer
         if ($null -ne $printerPort)
         {
