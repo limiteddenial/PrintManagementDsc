@@ -57,6 +57,18 @@ class Printer
     [System.String]
     $lprQueueName
 
+    [DscProperty()]
+    [System.String]
+    $Location
+
+    [DscProperty()]
+    [System.String]
+    $Comment
+
+    [DscProperty()]
+    [System.Boolean]
+    $Published = $false
+
     hidden $Messages = ""
 
     Printer()
@@ -171,6 +183,18 @@ class Printer
                 {
                     $addPrinterParam.Shared = $this.Shared
                 } # end if shared
+                if ($null -ne $this.Location)
+                {
+                    $addPrinterParam.Location = $this.Location
+                } # end if Location
+                if ($null -ne $this.Comment)
+                {
+                    $addPrinterParam.Comment = $this.Comment
+                } # end if Comment
+                if ($null -ne $this.Published)
+                {
+                    $addPrinterParam.Published = $this.Published
+                } # end if Published
 
                 try
                 {
@@ -234,6 +258,30 @@ class Printer
                     # To make changes we need to make sure there are no jobs queued up on the printer
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If PrinterPort
+
+                if ($printer.Location -ne $this.Location)
+                {
+                    $updatePrinterParam.Location = $this.Location
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Location', $this.Location, $printer.Location)
+                    # To make changes we need to make sure there are no jobs queued up on the printer
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                } # End If Location
+                
+                if ($printer.Comment -ne $this.Comment)
+                {
+                    $updatePrinterParam.Comment = $this.Comment
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Comment', $this.Comment, $printer.Comment)
+                    # To make changes we need to make sure there are no jobs queued up on the printer
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                } # End If Comment
+
+                if ($printer.Published -ne $this.Published)
+                {
+                    $updatePrinterParam.Published = $this.Published
+                    Write-Verbose -Message ($this.Messages.UpdatedDesiredState -f 'Published', $this.Published, $printer.Published)
+                    # To make changes we need to make sure there are no jobs queued up on the printer
+                    Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
+                } # End If Published
 
                 <#
                     If the no params are added besides the default name property.
@@ -494,6 +542,21 @@ class Printer
                 Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "PortName", $printer.PortName, $this.PortName)
                 return $false
             } # End PortName
+            if ($this.Location -ne [string]$printer.Location)
+            {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Location", $printer.Location, $this.Location)
+                return $false
+            } # End Location
+            if ($this.Comment -ne [string]$printer.Comment)
+            {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Comment", $printer.Comment, $this.Comment)
+                return $false
+            } # End Comment
+            if ($this.Published -ne $printer.Published)
+            {
+                Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "Published", $printer.Published, $this.Published)
+                return $false
+            } # End Published
 
             switch ($printerPort.Description)
             {
@@ -537,7 +600,7 @@ class Printer
                         } # End SNMPIndex
                     } # End SNMPIndex
 
-                    if ($this.lprQueueName -ne $printerPort.lprQueueName)
+                    if ([string]$this.lprQueueName -ne [string]$printerPort.lprQueueName)
                     {
                         Write-Verbose -Message  ($this.Messages.NotInDesiredState -f "lprQueueName", $printerPort.lprQueueName, $this.lprQueueName)
                         return $false
@@ -593,6 +656,9 @@ class Printer
             $ReturnObject.DriverName = $printer.DriverName
             $ReturnObject.Shared = $printer.Shared
             $ReturnObject.PermissionSDDL = $printer.PermissionSDDL
+            $ReturnObject.Location = $printer.Location
+            $ReturnObject.Comment = $printer.Comment
+            $ReturnObject.Published = $printer.Published
         } # End Printer
         if ($null -ne $printerPort)
         {

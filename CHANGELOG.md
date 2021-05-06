@@ -1,5 +1,13 @@
 # Changelog
 
+## unreleased
+
+* Cast type _lprQueueName_ as [string] to support Ansible Win_DSC module
+* Added additional printer properties for deployments
+  * Location
+  * Comment
+  * Published
+
 ## 2.0.0.0
 
 * Fixed examples for deployment
