@@ -733,7 +733,7 @@ class Printer
                 return [PortType]::LPR
             } # End 2
         } # End Switch
-        if ($getPortInformation.Description -eq "PaperCut TCP/IP Port")
+        if (Test-Path -Path ("HKLM:\SYSTEM\CurrentControlSet\Control\Print\Monitors\PaperCut TCP/IP Port\Ports\{0}" -f $this.PortName))
         {
             return [PortType]::PaperCut
         } # End If Description
