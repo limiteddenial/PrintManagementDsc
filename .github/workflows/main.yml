@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: Create Release
+
+jobs:
+  job1:
+    name: Run Tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install Required Feature
+        shell: pwsh
+        run: |
+          Install-WindowsFeature -Name 'Print-Server'
+          Start-Service -Name 'Spooler'
