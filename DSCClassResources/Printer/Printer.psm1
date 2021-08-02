@@ -55,7 +55,7 @@ class Printer
 
     [DscProperty()]
     [System.String]
-    $lprQueueName
+    $lprQueueName = ''
 
     [DscProperty()]
     [System.String]
@@ -266,7 +266,7 @@ class Printer
                     # To make changes we need to make sure there are no jobs queued up on the printer
                     Get-PrintJob -PrinterName $this.Name | Remove-PrintJob
                 } # End If Location
-                
+
                 if ($printer.Comment -ne $this.Comment)
                 {
                     $updatePrinterParam.Comment = $this.Comment
